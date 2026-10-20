@@ -1,0 +1,8 @@
+{
+  "name": "bokbokmoa-fortune-skill",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "manseryeok": "^2.0.0"
+  }
+}
