@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1e8fc9"/>
+  <rect x="56" y="92" width="400" height="388" rx="18" fill="#f3eee3"/>
+  <rect x="48" y="84" width="400" height="388" rx="18" fill="#fbf8f1"/>
+  <g stroke="#7fb2e5" stroke-width="4">
+    <line x1="48" y1="200" x2="448" y2="200"/><line x1="48" y1="256" x2="448" y2="256"/>
+    <line x1="48" y1="312" x2="448" y2="312"/><line x1="48" y1="368" x2="448" y2="368"/><line x1="48" y1="424" x2="448" y2="424"/>
+  </g>
+  <g fill="none" stroke="#1a1a1a" stroke-width="12" stroke-linecap="round">
+    <path d="M100 116C88 66 92 40 112 40s24 26 16 64"/><path d="M180 116C168 66 172 40 192 40s24 26 16 64"/>
+    <path d="M260 116C248 66 252 40 272 40s24 26 16 64"/><path d="M340 116C328 66 332 40 352 40s24 26 16 64"/>
+  </g>
+  <rect x="120" y="318" width="270" height="44" rx="8" fill="#ffe45c" transform="rotate(-3 255 340)"/>
+  <text x="256" y="350" text-anchor="middle" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-weight="800" font-size="150" fill="#1f3a93">福</text>
+</svg>
