@@ -1,0 +1,217 @@
+/* 디자인 버전 비교용 스킨. 화면 구조와 점수는 그대로 두고 <html data-design="..."> 로 겉모습만 바꾼다.
+   기본(속성 없음)은 스프링 메모장 + 손글씨. */
+
+/* ================================================================
+   한지와 부적: 한지 질감, 붓글씨 제목, 붉은 인장
+   ================================================================ */
+:root[data-design='hanji'] {
+  --color-bg-desk: #d9c9a8;
+  --color-bg-page: #f6efe0;
+  --color-bg-sheet-edge: #e2d5ba;
+  --color-line-rule: rgb(120 90 50 / 0.16);
+  --color-text-ink: #1d1a16;
+  --color-text-title: #1d1a16;
+  --color-text-caution: #b8261b;
+  --color-text-muted: #6b5f4f;
+  --color-mark-good: #b8261b;
+  --color-bg-cover: #b8261b;
+  --font-hand: 'Gowun Batang', serif;
+  --seal: #b8261b;
+}
+[data-design='hanji'] body {
+  background: var(--color-bg-desk) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.3 0 0 0 0 0.15 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+[data-design='hanji'] .sheet {
+  border: 0; border-radius: 2px;
+  box-shadow: inset 0 0 0 7px var(--color-bg-page), inset 0 0 0 9px var(--seal), inset 0 0 0 12px var(--color-bg-page), inset 0 0 0 13px var(--seal), 0 3px 10px rgb(60 40 10 / 0.18);
+}
+[data-design='hanji'] .sheet::before { /* 스프링 대신 福 인장 */
+  content: '福'; left: auto; right: 22px; top: 20px; width: 46px; height: 46px; display: grid; place-items: center;
+  background: var(--seal); color: var(--color-bg-page); font: 40px/1 'Nanum Brush Script', serif; border-radius: 6px; transform: rotate(-6deg);
+}
+[data-design='hanji'] .h-display, [data-design='hanji'] .cal-head button { font-family: 'Nanum Brush Script', serif; font-size: 46px; font-weight: 400; }
+[data-design='hanji'] .score-line .value { font-family: 'Nanum Brush Script', serif; font-size: 38px; font-weight: 400; }
+[data-design='hanji'] .mark-good { background: none; color: var(--seal); box-shadow: inset 0 0 0 2px var(--seal); border-radius: 4px; }
+[data-design='hanji'] .mark-careful { border: 0; color: var(--color-text-muted); text-decoration: underline wavy var(--seal); text-underline-offset: 6px; }
+[data-design='hanji'] .today-score .ts-num { font: 400 92px/84px 'Nanum Brush Script', serif; color: var(--seal); }
+[data-design='hanji'] .today-score .ts-num::before { inset: 10px -4px 0; border: 3px solid var(--seal); border-radius: 8px; transform: rotate(-3deg); }
+[data-design='hanji'] .today-score .ts-num::after { display: none; }
+[data-design='hanji'] .today-score .ts-grade { font: 400 40px/var(--line) 'Nanum Brush Script', serif; background: none; text-decoration: none; }
+[data-design='hanji'] .sticky { background: #efe2c4; border-left: 4px solid var(--seal); transform: none; box-shadow: 0 1px 3px rgb(60 40 10 / 0.15); }
+[data-design='hanji'] .sticky.pink { background: #f1dccf; }
+[data-design='hanji'] .sticky.blue { background: #e1e3d4; }
+[data-design='hanji'] .caution-note { text-decoration-style: solid; }
+[data-design='hanji'] .cal-cell.good .d { background: none; color: var(--seal); box-shadow: inset 0 0 0 1.5px var(--seal); border-radius: 4px; }
+[data-design='hanji'] .cal-cell.careful .d { color: var(--color-text-muted); outline: 0; text-decoration: underline wavy var(--seal); }
+[data-design='hanji'] .nav { background: var(--color-bg-page); }
+[data-design='hanji'] .nav button { font-family: 'Gowun Batang', serif; font-size: 17px; }
+[data-design='hanji'] .nav .logo { font-family: 'Nanum Brush Script', serif; color: var(--seal); }
+[data-design='hanji'] .nav button[aria-current='page']::after { background: var(--seal); height: 3px; }
+
+/* ================================================================
+   미니멀 앱: iOS 기본 앱처럼 흰 카드와 시스템 글꼴, 줄·손글씨 없음
+   ================================================================ */
+:root[data-design='minimal'] {
+  --color-bg-desk: #f2f2f7;
+  --color-bg-page: #ffffff;
+  --color-line-rule: transparent;
+  --color-text-ink: #000;
+  --color-text-title: #000;
+  --color-text-muted: #8a8a8e;
+  --color-text-caution: #ff3b30;
+  --color-mark-good: #34c759;
+  --color-bg-cover: #0a84ff;
+  --font-hand: var(--font-ui);
+}
+[data-design='minimal'] .sheet { border: 0; border-radius: 22px; box-shadow: none; margin-top: 14px; padding: 20px; }
+[data-design='minimal'] .sheet::before { display: none; }
+[data-design='minimal'] :is(.h-body, .h-note, .caution-note, .score-line .label, .sticky .t, .sticky .d, .cal-cell .d, .cal-cell .s, .today-score .ts-label, .today-score .ts-sub, .today-score .ts-grade) { transform: none; }
+[data-design='minimal'] .h-display { font: 700 28px/36px var(--font-ui); }
+[data-design='minimal'] .h-body { font: 400 17px/26px var(--font-ui); }
+[data-design='minimal'] .h-note { font: 400 15px/22px var(--font-ui); }
+[data-design='minimal'] .score-line { height: 52px; align-items: center; box-shadow: inset 0 -0.5px 0 #c6c6c8; }
+[data-design='minimal'] .score-line .label { font: 400 17px var(--font-ui); flex: 1; }
+[data-design='minimal'] .score-line .value { font: 600 17px var(--font-ui); min-width: 48px; text-align: right; }
+[data-design='minimal'] .score-line .meter { display: block; width: 72px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, currentColor var(--v), #e5e5ea var(--v)); color: #c7c7cc; }
+[data-design='minimal'] .score-line[data-grade='좋음'] .meter { color: #34c759; }
+[data-design='minimal'] .score-line[data-grade='조심'] .meter { color: #ff3b30; }
+[data-design='minimal'] :is(.mark-good, .mark-careful, .mark-ink) { background: none; border: 0; padding: 0; }
+[data-design='minimal'] .mark-good { color: #248a3d; }
+[data-design='minimal'] .mark-careful { color: #ff3b30; }
+[data-design='minimal'] .today-score { grid-template-rows: auto auto; row-gap: 4px; padding: 8px 0 12px; }
+[data-design='minimal'] .today-score .ts-label { font: 600 13px var(--font-ui); color: var(--color-text-muted); text-transform: uppercase; }
+[data-design='minimal'] .today-score .ts-num { font: 700 72px/1 var(--font-ui); padding: 0; letter-spacing: -2px; }
+[data-design='minimal'] .today-score .ts-num small { font-size: 24px; letter-spacing: 0; }
+[data-design='minimal'] .today-score .ts-num::before, [data-design='minimal'] .today-score .ts-num::after { display: none; }
+[data-design='minimal'] .today-score .ts-grade { font: 600 15px var(--font-ui); padding: 4px 12px; border-radius: 100px; background: #e5e5ea; text-decoration: none; }
+[data-design='minimal'] .today-score .ts-grade.좋음 { background: #d8f5df; color: #248a3d; }
+[data-design='minimal'] .today-score .ts-grade.조심 { background: #ffe0de; color: #d70015; }
+[data-design='minimal'] .today-score .ts-sub { font: 400 13px var(--font-ui); }
+[data-design='minimal'] .stickies { gap: 10px; }
+[data-design='minimal'] .sticky { background: #f2f2f7 !important; border-radius: 14px; box-shadow: none; transform: none !important; padding: 12px 14px; }
+[data-design='minimal'] .sticky .t { font: 600 15px/22px var(--font-ui); }
+[data-design='minimal'] .sticky .d { font: 400 13px/20px var(--font-ui); color: #3c3c43; }
+[data-design='minimal'] .caution-note { font: 500 15px/22px var(--font-ui); text-decoration: none; background: #fff2f1; padding: 10px 12px; border-radius: 12px; margin: 8px 0; }
+[data-design='minimal'] .cal-head button { font: 600 26px var(--font-ui); color: #0a84ff; }
+[data-design='minimal'] .cal-cell { font-family: var(--font-ui); justify-content: center; }
+[data-design='minimal'] .cal-cell .d { font-size: 17px; width: 36px; height: 36px; line-height: 36px; padding: 0; border-radius: 50%; }
+[data-design='minimal'] .cal-cell.good .d { background: #d8f5df; color: #248a3d; }
+[data-design='minimal'] .cal-cell.careful .d { background: #ffe0de; outline: 0; }
+[data-design='minimal'] .cal-cell.today .d { background: #0a84ff; color: #fff; }
+[data-design='minimal'] .cal-cell.today::after { display: none; }
+[data-design='minimal'] .cal-cell .s { font-size: 12px; color: var(--color-text-muted); }
+[data-design='minimal'] .nav { background: rgb(249 249 249 / 0.94); backdrop-filter: blur(20px); border-color: #d1d1d6; }
+[data-design='minimal'] .nav button { font: 500 12px var(--font-ui); }
+[data-design='minimal'] .nav button[aria-current='page'] { color: #0a84ff; }
+[data-design='minimal'] .nav button::after { display: none; }
+[data-design='minimal'] .nav .logo { font: 700 20px var(--font-ui); color: #000; }
+[data-design='minimal'] .bottom-sheet { background: #fff; }
+
+/* ================================================================
+   다이어리 플래너: 모눈 점 노트, 마스킹테이프, 빨간 인주 도장
+   ================================================================ */
+:root[data-design='diary'] {
+  --color-bg-desk: #f3e6dc;
+  --color-bg-page: #fffdf8;
+  --color-line-rule: transparent;
+  --color-text-ink: #4a3f6b;
+  --color-text-title: #3a3150;
+  --color-text-caution: #e0533d;
+  --color-text-muted: #9a8f88;
+  --color-mark-good: #ffc8d6;
+  --color-bg-cover: #7fb3a2;
+  --font-hand: 'Gamja Flower', 'Gaegu', cursive;
+  --stamp: #e0533d;
+}
+[data-design='diary'] .sheet, [data-design='diary'] .bottom-sheet {
+  background: radial-gradient(circle, #d6ccc2 1.3px, transparent 1.6px) 14px 14px / 28px 28px, var(--color-bg-page);
+}
+[data-design='diary'] .sheet { border: 0; border-radius: 6px; box-shadow: 0 3px 12px rgb(80 50 30 / 0.1); }
+[data-design='diary'] .sheet::before { /* 마스킹테이프 */
+  left: calc(50% - 60px); right: auto; width: 120px; height: 28px; top: -12px;
+  background: repeating-linear-gradient(45deg, rgb(127 179 162 / 0.75) 0 8px, rgb(255 255 255 / 0.55) 8px 16px); transform: rotate(-3deg);
+}
+[data-design='diary'] .score-line .value { font-family: var(--font-hand); }
+[data-design='diary'] .mark-careful { background: var(--stamp); color: #fff; border: 0; border-radius: 100px; padding: 0 10px; }
+[data-design='diary'] .today-score .ts-num { color: var(--stamp); font-family: var(--font-hand); }
+[data-design='diary'] .today-score .ts-num::before { border: 3px solid var(--stamp); inset: 8px -4px -2px; transform: rotate(-10deg); }
+[data-design='diary'] .today-score .ts-num::after { border: 1.5px dashed var(--stamp); inset: 16px 4px 6px; opacity: 1; transform: rotate(-10deg); }
+[data-design='diary'] .today-score .ts-grade.좋음 { background: linear-gradient(transparent 40%, var(--color-mark-good) 40% 92%, transparent 92%); }
+[data-design='diary'] .sticky { background: #fff4c2; position: relative; }
+[data-design='diary'] .sticky.pink { background: #ffe0e8; }
+[data-design='diary'] .sticky.blue { background: #dcefff; }
+[data-design='diary'] .sticky::before { content: ''; position: absolute; top: -10px; left: calc(50% - 30px); width: 60px; height: 20px; background: rgb(255 200 214 / 0.8); transform: rotate(4deg); }
+[data-design='diary'] .cal-cell.good .d { background: radial-gradient(circle, var(--color-mark-good) 60%, transparent 62%); }
+[data-design='diary'] .cal-cell.careful .d { background: var(--stamp); color: #fff; outline: 0; }
+[data-design='diary'] .nav button, [data-design='diary'] .nav .logo { font-family: var(--font-hand); }
+[data-design='diary'] .nav button[aria-current='page']::after { background: var(--color-mark-good); }
+[data-design='diary'] .btn.primary { background: var(--color-bg-cover); border-radius: 100px; }
+
+/* ================================================================
+   픽셀 디자인: 레트로 게임 화면, 도트 글꼴, 굵은 검은 테두리와 HP 막대
+   ================================================================ */
+:root[data-design='pixel'] {
+  --color-bg-desk: #1d2b53;
+  --color-bg-page: #fff1e8;
+  --color-line-rule: transparent;
+  --color-text-ink: #1d2b53;
+  --color-text-title: #000;
+  --color-text-caution: #ff004d;
+  --color-text-muted: #5f574f;
+  --color-mark-good: #00e436;
+  --color-bg-cover: #29adff;
+  --font-hand: 'Galmuri11', monospace;
+  --font-ui: 'Galmuri11', monospace;
+}
+[data-design='pixel'] .disclaimer { color: #c2c3c7; }
+[data-design='pixel'] .sheet { border: 4px solid #000; border-radius: 0; box-shadow: 6px 6px 0 #000; }
+[data-design='pixel'] .sheet::before { /* 창 제목 줄 */
+  left: -4px; right: -4px; top: -26px; height: 22px;
+  background: repeating-linear-gradient(90deg, #ffec27 0 8px, #ffa300 8px 16px); border: 4px solid #000; border-bottom: 0;
+}
+[data-design='pixel'] :is(.h-body, .h-note, .caution-note, .score-line .label, .sticky .t, .sticky .d, .cal-cell .d, .cal-cell .s) { transform: none; }
+[data-design='pixel'] .h-display { font: 700 24px/56px var(--font-hand); }
+[data-design='pixel'] .h-body { font-size: 15px; }
+[data-design='pixel'] .h-note { font-size: 12px; }
+[data-design='pixel'] .score-line { align-items: center; }
+[data-design='pixel'] .score-line .label { font-size: 15px; flex: 1; }
+[data-design='pixel'] .score-line .value { font: 700 18px var(--font-hand); min-width: 56px; text-align: right; }
+[data-design='pixel'] .score-line .meter { display: block; width: 96px; height: 14px; border: 2px solid #000; background: repeating-linear-gradient(90deg, transparent 0 8px, #000 8px 9px), linear-gradient(90deg, currentColor var(--v), #c2c3c7 var(--v)); color: #29adff; }
+[data-design='pixel'] .score-line[data-grade='좋음'] .meter { color: #00e436; }
+[data-design='pixel'] .score-line[data-grade='조심'] .meter { color: #ff004d; }
+[data-design='pixel'] :is(.mark-good, .mark-careful, .mark-ink) { border: 0; border-radius: 0; padding: 0 4px; }
+[data-design='pixel'] .mark-good { background: #00e436; color: #000; }
+[data-design='pixel'] .mark-careful { background: #ff004d; color: #fff; }
+[data-design='pixel'] .today-score .ts-num { font: 700 56px/84px var(--font-hand); z-index: 0; }
+[data-design='pixel'] .today-score .ts-num::before { inset: 12px -6px 4px; border: 4px solid #000; border-radius: 0; transform: none; box-shadow: 4px 4px 0 #000; background: #ffec27; z-index: -1; }
+[data-design='pixel'] .today-score .ts-num::after { display: none; }
+[data-design='pixel'] .today-score .ts-grade { font: 700 18px/var(--line) var(--font-hand); transform: none; text-decoration: none; padding: 0 6px; }
+[data-design='pixel'] .today-score .ts-grade.좋음 { background: #00e436; color: #000; }
+[data-design='pixel'] .today-score .ts-grade.조심 { background: #ff004d; color: #fff; }
+[data-design='pixel'] .today-score .ts-label, [data-design='pixel'] .today-score .ts-sub { font-size: 13px; }
+[data-design='pixel'] .sticky { border-radius: 0; border: 3px solid #000; box-shadow: 4px 4px 0 #000; transform: none !important; background: #ffec27; }
+[data-design='pixel'] .sticky.pink { background: #ff77a8; }
+[data-design='pixel'] .sticky.blue { background: #29adff; }
+[data-design='pixel'] .sticky .t { font-size: 15px; }
+[data-design='pixel'] .sticky .d { font-size: 12px; color: #000; }
+[data-design='pixel'] .caution-note { font-size: 13px; text-decoration: none; background: #000; color: #ff004d; padding: 0 8px; }
+[data-design='pixel'] :is(.segmented, .segmented button, .group, .btn) { border-radius: 0; }
+[data-design='pixel'] .segmented { border: 2px solid #000; background: #c2c3c7; }
+[data-design='pixel'] .segmented button[aria-pressed='true'] { box-shadow: none; background: #ffec27; }
+[data-design='pixel'] .group { border: 3px solid #000; box-shadow: 4px 4px 0 #000; }
+[data-design='pixel'] .btn { border: 3px solid #000 !important; box-shadow: 3px 3px 0 #000; }
+[data-design='pixel'] .toggle, [data-design='pixel'] .toggle::after { border-radius: 0; }
+[data-design='pixel'] .cal-head button { font: 700 24px var(--font-hand); }
+[data-design='pixel'] .cal-cell { border-radius: 0; }
+[data-design='pixel'] .cal-cell .d { font-size: 15px; }
+[data-design='pixel'] .cal-cell .s { font-size: 12px; }
+[data-design='pixel'] .cal-cell.good .d { background: #00e436; color: #000; }
+[data-design='pixel'] .cal-cell.careful .d { background: #ff004d; color: #fff; outline: 0; border-radius: 0; }
+[data-design='pixel'] .nav { background: var(--color-bg-page); border: 0 solid #000; }
+[data-design='pixel'] .nav button { font: 400 13px var(--font-ui); }
+[data-design='pixel'] .nav button[aria-current='page']::after { background: #ff004d; border-radius: 0; height: 4px; }
+[data-design='pixel'] .nav .logo { font: 700 18px var(--font-ui); }
+[data-design='pixel'] .bottom-sheet { border-radius: 0; border-top: 4px solid #000; }
+@media (max-width: 767px) { [data-design='pixel'] .nav { border-top-width: 4px; } }
+@media (min-width: 768px) and (max-width: 1199px) { [data-design='pixel'] .nav { border-right-width: 4px; } }
+@media (min-width: 1200px) { [data-design='pixel'] .nav { border-bottom-width: 4px; } }

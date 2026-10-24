@@ -1,4 +1,5 @@
 // Figma 복복모아 컴포넌트와 같은 이름의 화면 부품
+import type React from 'react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { type DayResult, type Field, gradeOf, gradeOfAverage, type Rule, SOURCES } from './fortune/score';
 
@@ -11,8 +12,10 @@ const markClass = { 좋음: 'mark-good', 보통: '', 조심: 'mark-careful' } as
 export function ScoreLine({ label, value, average = false }: { label: string; value: number; average?: boolean }) {
   const grade = average ? gradeOfAverage(value) : gradeOf(value);
   return (
-    <div className="score-line">
+    <div className="score-line" data-grade={grade}>
       <span className="label">{label}</span>
+      {/* 미니멀·픽셀 디자인에서만 보이는 점수 막대 */}
+      <span className="meter" aria-hidden="true" style={{ '--v': `${value}%` } as React.CSSProperties} />
       <span className={`value ${markClass[grade]}`} aria-label={`${value}점 ${grade}`}>
         {value}점
       </span>

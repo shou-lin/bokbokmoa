@@ -107,7 +107,7 @@ export function Finder({ today, me, weekday, onSave }: { today: YMD; me?: Saju; 
             </label>
           </div>
           <button className="btn primary" type="submit" disabled={!title.trim()}>
-            일정으로 저장
+            저장하고 캘린더에 넣기
           </button>
         </form>
       ) : (

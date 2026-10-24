@@ -1,17 +1,19 @@
 import { useMemo, useState } from 'react';
-import { todayKST, type YMD, WEEKDAYS, weekdayOf } from './fortune/date';
+import { parseYMD, todayKST, type YMD, WEEKDAYS, weekdayOf } from './fortune/date';
 import { sajuOf } from './fortune/personal';
-import type { Field } from './fortune/score';
+import { type Field, gradeOfAverage, scoreDay } from './fortune/score';
+import { buildIcs, openIcs } from './ics';
 import { Calendar, type Mode } from './screens/Calendar';
 import { DayDetail } from './screens/DayDetail';
 import { Finder } from './screens/Finder';
 import { Onboarding } from './screens/Onboarding';
 import { Settings } from './screens/Settings';
 import { Today } from './screens/Today';
-import { type Schedule, useOnboarded, useProfile, useSchedules } from './storage';
-import { Disclaimer, Sheet, useMedia } from './ui';
+import { type Kind, type Schedule, useOnboarded, useProfile, useSchedules } from './storage';
+import { Disclaimer, Sheet, shortName, signalText, sourceLabel, useMedia } from './ui';
 
 type Tab = 'home' | 'calendar' | 'finder' | 'settings';
+const KIND_FIELD: Record<Kind, Field> = { 이사: '이동', 계약: '계약', '개업/투자': '재물', 기타: '종합' };
 const TABS: [Tab, string][] = [['home', '홈'], ['calendar', '달력'], ['finder', '좋은 날'], ['settings', '설정']];
 
 export function App() {
@@ -19,7 +21,10 @@ export function App() {
   const [profile, setProfile] = useProfile();
   const [schedules, setSchedules] = useSchedules();
   const [onboarded, setOnboarded] = useOnboarded();
-  const [tab, setTab] = useState<Tab>('home');
+  const [tab, setTab] = useState<Tab>(() => {
+    const t = new URLSearchParams(location.search).get('tab');
+    return TABS.some(([id]) => id === t) ? (t as Tab) : 'home';
+  });
   const [editing, setEditing] = useState(false);
   const [selected, setSelected] = useState<YMD>(today);
   const [month, setMonth] = useState({ year: today.year, month: today.month });
@@ -39,8 +44,24 @@ export function App() {
   }, [profile]);
   const calMe = mode === '나' ? me : undefined;
 
-  const addSchedule = (s: Omit<Schedule, 'id' | 'createdAt'>) =>
-    setSchedules((list) => [...list, { ...s, id: crypto.randomUUID(), createdAt: new Date().toISOString() }].sort((a, b) => a.date.localeCompare(b.date)));
+  // 일정은 기기에 저장하고, 같은 내용을 .ics로 열어 iOS 캘린더에도 넣을 수 있게 한다
+  const exportSchedule = (s: Schedule) => {
+    const field = KIND_FIELD[s.kind];
+    const day = scoreDay(parseYMD(s.date), me);
+    const reasons = day.sources.flatMap((x) => x.rules).filter((r) => (r.signals[field] ?? 0) !== 0);
+    const description = [
+      `복복모아 · ${field} 평균 ${day.average[field]}점 (${gradeOfAverage(day.average[field])})`,
+      ...reasons.map((r) => `${sourceLabel(r.source)} · ${shortName(r.name)} ${signalText(r)}`),
+      ...day.alerts.map((a) => `⚠️ ${a.name}`),
+      '점수는 운의 흐름을 재미로 보여주는 것이며, 어떤 결과도 보장하지 않습니다.',
+    ].join('\n');
+    openIcs(buildIcs(s, description), `bokbokmoa-${s.date}.ics`);
+  };
+  const addSchedule = (s: Omit<Schedule, 'id' | 'createdAt'>) => {
+    const created: Schedule = { ...s, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+    setSchedules((list) => [...list, created].sort((a, b) => a.date.localeCompare(b.date)));
+    exportSchedule(created);
+  };
 
   if (!onboarded || editing) {
     return (
@@ -117,6 +138,7 @@ export function App() {
               setMode('일반');
             }}
             onDeleteSchedule={(id) => setSchedules((l) => l.filter((s) => s.id !== id))}
+            onExportSchedule={exportSchedule}
             onDeleteAll={() => setSchedules([])}
           />
         )}

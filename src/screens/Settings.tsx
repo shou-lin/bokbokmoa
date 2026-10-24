@@ -2,7 +2,7 @@ import { type Profile, type Saju, ZODIAC } from '../fortune/personal';
 import type { Schedule } from '../storage';
 import { Sheet } from '../ui';
 
-export function Settings(props: { profile: Profile | null; me?: Saju; schedules: Schedule[]; onEdit: () => void; onDeleteProfile: () => void; onDeleteSchedule: (id: string) => void; onDeleteAll: () => void }) {
+export function Settings(props: { profile: Profile | null; me?: Saju; schedules: Schedule[]; onEdit: () => void; onDeleteProfile: () => void; onDeleteSchedule: (id: string) => void; onExportSchedule: (s: Schedule) => void; onDeleteAll: () => void }) {
   const { profile, me, schedules } = props;
   return (
     <Sheet>
@@ -34,6 +34,9 @@ export function Settings(props: { profile: Profile | null; me?: Saju; schedules:
             <span className="grow">
               {s.date} {s.title}
             </span>
+            <button type="button" style={{ border: 0, background: 'none', color: 'var(--color-bg-cover)' }} onClick={() => props.onExportSchedule(s)}>
+              캘린더
+            </button>
             <button type="button" className="danger" style={{ border: 0, background: 'none', color: 'var(--color-ios-red)' }} onClick={() => props.onDeleteSchedule(s.id)}>
               삭제
             </button>

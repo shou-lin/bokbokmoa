@@ -62,7 +62,7 @@ export function DayDetail({ date, me, field, schedules, onAdd }: { date: YMD; me
             </label>
           </div>
           <button className="btn primary" type="submit" disabled={!title.trim()}>
-            저장
+            저장하고 캘린더에 넣기
           </button>
         </form>
       ) : (

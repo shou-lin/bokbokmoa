@@ -88,6 +88,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .score-line .label { font: 400 22px/var(--line) var(--font-hand); color: var(--color-text-ink); }
 .score-line .value { font: 700 30px/40px var(--font-hand); color: var(--color-text-ink); white-space: nowrap; }
 .score-line .value.mark-careful { line-height: 34px; }
+.score-line .meter { display: none; }
 
 /* ---------- 포스트잇 ---------- */
 /* 포스트잇 높이는 28px 배수: 위아래 여백 14 + 글줄 28×n */
@@ -199,3 +200,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .today-score .ts-grade.보통 { color: var(--color-text-ink); }
 .today-score .ts-grade.조심 { color: var(--color-text-caution); text-decoration: underline wavy; }
 .today-score .ts-sub { font: 400 18px/var(--line) var(--font-hand); color: var(--color-text-muted); transform: translateY(3px); }
+
+/* 달력 범례: 날짜 칸 표시를 작게 다시 그린다 */
+.legend { display: flex; gap: 14px; }
+.legend .cal-cell { display: inline-flex; height: var(--line); width: auto; min-width: 0; font-size: 16px; }
+.legend .cal-cell .d { font-size: 16px; line-height: 24px; width: auto; height: auto; padding: 0 6px; }
+.legend .cal-cell.today::after { bottom: 0; }

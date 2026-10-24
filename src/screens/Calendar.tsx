@@ -85,7 +85,21 @@ export function Calendar(props: {
       <p className="h-body">
         좋은 날 {count('좋음')}일 · 조심할 날 {count('조심')}일
       </p>
-      <p className="h-note">형광펜 좋음 · 빨간 원 조심 · 밑줄 오늘</p>
+      {/* 범례는 디자인마다 달라지는 표시를 그대로 그려 보여준다 */}
+      <p className="h-note legend">
+        <span className="cal-cell good">
+          <span className="d">좋음</span>
+        </span>
+        <span className="cal-cell">
+          <span className="d">보통</span>
+        </span>
+        <span className="cal-cell careful">
+          <span className="d">조심</span>
+        </span>
+        <span className="cal-cell today">
+          <span className="d">오늘</span>
+        </span>
+      </p>
     </div>
   );
 }

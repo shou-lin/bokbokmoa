@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>복복모아 디자인 비교</title>
+<style>
+  :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; }
+  body { margin: 0; background: #2b2b30; color: #f2f2f7; }
+  header { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; padding: 14px 20px; background: #1c1c1e; border-bottom: 1px solid #3a3a3c; }
+  h1 { font-size: 17px; margin: 0 12px 0 0; }
+  .seg { display: flex; background: #3a3a3c; border-radius: 9px; padding: 2px; }
+  .seg button { border: 0; background: none; color: #f2f2f7; font: 500 13px inherit; padding: 6px 12px; border-radius: 7px; cursor: pointer; }
+  .seg button[aria-pressed='true'] { background: #636366; }
+  .sample { border: 1px solid #636366; background: none; color: #f2f2f7; border-radius: 9px; padding: 6px 12px; font: 500 13px inherit; cursor: pointer; }
+  main { display: flex; flex-wrap: wrap; gap: 28px; padding: 24px 20px 48px; align-items: flex-start; }
+  figure { margin: 0; }
+  figcaption { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  figcaption small { font-weight: 400; color: #aeaeb2; margin-left: 6px; }
+  .frame { overflow: hidden; border-radius: 18px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.4); background: #000; }
+  iframe { border: 0; transform-origin: 0 0; display: block; }
+</style>
+</head>
+<body>
+<header>
+  <h1>복복모아 디자인 비교</h1>
+  <div class="seg" id="screen"></div>
+  <div class="seg" id="device"></div>
+  <button class="sample" id="sample" type="button">예시 데이터 넣기</button>
+</header>
+<main id="grid"></main>
+<script>
+  // 같은 화면을 디자인 버전별로 나란히 보여준다. 데이터는 이 브라우저의 localStorage를 함께 쓴다.
+  const DESIGNS = [
+    ['', '스프링 메모장', '지금 버전'],
+    ['hanji', '한지와 부적', '붓글씨·붉은 인장'],
+    ['minimal', '미니멀 앱', 'iOS 기본 앱 느낌'],
+    ['diary', '다이어리 플래너', '모눈 노트·마스킹테이프'],
+    ['pixel', '픽셀', '레트로 게임'],
+  ];
+  const SCREENS = [['home', '홈'], ['calendar', '달력'], ['finder', '좋은 날'], ['settings', '설정']];
+  const DEVICES = [['iphone', '아이폰', 402, 874, 0.62], ['ipad', '아이패드', 1180, 820, 0.42], ['desktop', '컴퓨터', 1440, 900, 0.38]];
+  const state = { screen: 'home', device: 'iphone' };
+
+  function seg(el, items, key) {
+    el.innerHTML = '';
+    for (const [id, label] of items) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = label; b.setAttribute('aria-pressed', state[key] === id);
+      b.onclick = () => { state[key] = id; render(); };
+      el.appendChild(b);
+    }
+  }
+  function render() {
+    seg(document.getElementById('screen'), SCREENS, 'screen');
+    seg(document.getElementById('device'), DEVICES, 'device');
+    const [, , w, h, scale] = DEVICES.find((d) => d[0] === state.device);
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    for (const [id, name, note] of DESIGNS) {
+      const fig = document.createElement('figure');
+      fig.innerHTML = `<figcaption>${name}<small>${note}</small></figcaption>`;
+      const frame = document.createElement('div');
+      frame.className = 'frame';
+      frame.style.width = `${w * scale}px`; frame.style.height = `${h * scale}px`;
+      const f = document.createElement('iframe');
+      f.width = w; f.height = h; f.style.transform = `scale(${scale})`;
+      f.src = `/?tab=${state.screen}${id ? `&design=${id}` : ''}`;
+      f.title = `${name} · ${state.screen}`;
+      frame.appendChild(f); fig.appendChild(frame); grid.appendChild(fig);
+    }
+  }
+  document.getElementById('sample').onclick = () => {
+    try {
+      localStorage.setItem('bokbokmoa.onboarded', 'true');
+      localStorage.setItem('bokbokmoa.profile', JSON.stringify({ birthDate: '2001-12-01', calendar: 'solar', isLeapMonth: false, birthTime: '02:52' }));
+      localStorage.setItem('bokbokmoa.schedules', JSON.stringify([{ id: 'sample', title: '새집 이사', date: '2026-10-29', kind: '이사', createdAt: '' }]));
+    } catch {}
+    render();
+  };
+  render();
+</script>
+</body>
+</html>
