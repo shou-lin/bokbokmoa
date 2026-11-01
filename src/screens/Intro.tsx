@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { type YMD, WEEKDAYS } from '../fortune/date';
 import type { Saju } from '../fortune/personal';
 import { gradeOfAverage, scoreDay } from '../fortune/score';
-import { ding, PixelIcon, StatusBar, useClock } from '../pixel';
+import { ding, PhoneShell, PixelIcon, useClock } from '../pixel';
 import { shortName, sourceLabel, summaryOf } from '../ui';
 
 type Phase = 'arrive' | 'open' | 'read';
@@ -71,9 +71,12 @@ export function Intro({ today, me, onDetail, onSkip }: { today: YMD; me?: Saju; 
   };
 
   return (
-    <div className="intro" onPointerDown={ring}>
-      <section className="intro-phone" aria-label="복복모아에서 온 문자">
-        <StatusBar className="intro-status" />
+    <PhoneShell
+      title="메시지"
+      label="복복모아에서 온 문자"
+      right={phase === 'read' ? '읽음' : '새 메시지 1'}
+      onPointerDown={ring}
+      sky={
         <div className={`intro-sky ${phase}`}>
           <PixelIcon name="globe" size={5} className="intro-globe" />
           <div className="envelope" aria-hidden="true">
@@ -82,68 +85,12 @@ export function Intro({ today, me, onDetail, onSkip }: { today: YMD; me?: Saju; 
           </div>
           {phase === 'arrive' && <span className="intro-new">NEW</span>}
         </div>
-        <div className="intro-bar">
-          <PixelIcon name="envelope" size={2} />
-          <span>메시지</span>
-          <span className="intro-count">{phase === 'read' ? '읽음' : '새 메시지 1'}</span>
-        </div>
-
-        <div className="intro-body" onClick={phase === 'read' && !done ? hurry : undefined}>
-          {phase !== 'read' ? (
-            <button type="button" className="intro-row" onClick={hurry}>
-              <PixelIcon name="envelope" size={2} />
-              <span className="grow">복복모아 · 오늘의 운세가 도착했어요</span>
-              <span className="intro-time">{received}</span>
-            </button>
-          ) : (
-            <article className="intro-msg">
-              <div className="intro-msg-head">
-                <span>보낸 사람 복복모아</span>
-                <span>{received} 받음</span>
-              </div>
-              <p className="sr-only">{text}</p>
-              <p className="intro-text" aria-hidden="true">
-                {text.slice(0, typed)}
-                <span className={`caret ${done ? 'idle' : ''}`}>▌</span>
-              </p>
-            </article>
-          )}
-
-          {phase === 'read' && done && (
-            <div className="intro-choices">
-              {me ? (
-                <button ref={firstChoice} type="button" className="intro-choice" onClick={onSkip}>
-                  <PixelIcon name="calendar" size={2} />
-                  <span className="grow">내 운세 달력 열기</span>
-                  <span aria-hidden="true">▷</span>
-                </button>
-              ) : (
-                <>
-                  <button ref={firstChoice} type="button" className="intro-choice" onClick={onDetail}>
-                    <PixelIcon name="me" size={2} />
-                    <span className="grow">
-                      생년월일 넣고 자세히 보기
-                      <small>사주로 나에게 맞춘 점수를 더해요</small>
-                    </span>
-                    <span aria-hidden="true">▷</span>
-                  </button>
-                  <button type="button" className="intro-choice" onClick={onSkip}>
-                    <PixelIcon name="calendar" size={2} />
-                    <span className="grow">
-                      건너뛰고 둘러보기
-                      <small>누구에게나 같은 일반 길일 달력</small>
-                    </span>
-                    <span aria-hidden="true">▷</span>
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="intro-keys">
-          <button type="button" onClick={onSkip}>
-            건너뛰기
+      }
+      keys={
+        <>
+          {/* 다 읽은 뒤에는 아래 두 선택지가 같은 일을 하므로 건너뛰기 키를 감춘다 */}
+          <button type="button" onClick={onSkip} disabled={done && phase === 'read'} aria-hidden={done && phase === 'read'}>
+            {done && phase === 'read' ? '' : '건너뛰기'}
           </button>
           <span aria-hidden="true">
             <PixelIcon name="house" size={2} />
@@ -151,8 +98,60 @@ export function Intro({ today, me, onDetail, onSkip }: { today: YMD; me?: Saju; 
           <button type="button" onClick={hurry} disabled={phase === 'read' && done}>
             {phase === 'read' ? '전체 보기' : '열기'}
           </button>
+        </>
+      }
+    >
+      {phase !== 'read' ? (
+        <button type="button" className="intro-row" onClick={hurry}>
+          <PixelIcon name="envelope" size={2} />
+          <span className="grow">복복모아 · 오늘의 운세가 도착했어요</span>
+          <span className="intro-time">{received}</span>
+        </button>
+      ) : (
+        <article className="intro-msg">
+          <div className="intro-msg-head">
+            <span>보낸 사람 복복모아</span>
+            <span>{received} 받음</span>
+          </div>
+          <p className="sr-only">{text}</p>
+          {/* 눌러서 타이핑을 끝내는 건 마우스 지름길이고, 키보드는 아래 '전체 보기' 키를 쓴다 */}
+          <p className="intro-text" aria-hidden="true" onClick={done ? undefined : hurry}>
+            {text.slice(0, typed)}
+            <span className={`caret ${done ? 'idle' : ''}`}>▌</span>
+          </p>
+        </article>
+      )}
+
+      {phase === 'read' && done && (
+        <div className="intro-choices">
+          {me ? (
+            <button ref={firstChoice} type="button" className="intro-choice" onClick={onSkip}>
+              <PixelIcon name="calendar" size={2} />
+              <span className="grow">내 운세 달력 열기</span>
+              <span aria-hidden="true">▷</span>
+            </button>
+          ) : (
+            <>
+              <button ref={firstChoice} type="button" className="intro-choice" onClick={onDetail}>
+                <PixelIcon name="me" size={2} />
+                <span className="grow">
+                  생년월일 넣고 자세히 보기
+                  <small>사주로 나에게 맞춘 점수를 더해요</small>
+                </span>
+                <span aria-hidden="true">▷</span>
+              </button>
+              <button type="button" className="intro-choice" onClick={onSkip}>
+                <PixelIcon name="calendar" size={2} />
+                <span className="grow">
+                  건너뛰고 둘러보기
+                  <small>누구에게나 같은 일반 길일 달력</small>
+                </span>
+                <span aria-hidden="true">▷</span>
+              </button>
+            </>
+          )}
         </div>
-      </section>
-    </div>
+      )}
+    </PhoneShell>
   );
 }

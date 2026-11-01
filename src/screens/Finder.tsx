@@ -3,6 +3,7 @@ import { addDays, fmt, type YMD, WEEKDAYS } from '../fortune/date';
 import type { Saju } from '../fortune/personal';
 import { type DayResult, type Field, gradeOfAverage, scoreRange } from '../fortune/score';
 import type { Kind, Schedule } from '../storage';
+import { PixelIcon } from '../pixel';
 import { josa, leadRule, SavedNote, ScoreLine, Segmented, Sheet, shortName } from '../ui';
 
 const KINDS = ['이사', '계약', '개업/투자', '기타'] as const;
@@ -21,7 +22,7 @@ function rangeDays(today: YMD, range: Range, weekday: number) {
 const fieldScore = (d: DayResult, fields: Field[]) => Math.round(fields.reduce((a, f) => a + d.average[f], 0) / fields.length);
 const label = (d: DayResult) => `${d.info.date.month}/${d.info.date.day} ${WEEKDAYS[d.info.weekday]}`;
 
-export function Finder({ today, me, weekday, onSave, onExport }: { today: YMD; me?: Saju; weekday: number; onSave: (s: Omit<Schedule, 'id' | 'createdAt'>) => Schedule; onExport: (s: Schedule) => void }) {
+export function Finder({ hidden, today, me, weekday, onSave, onExport }: { hidden: boolean; today: YMD; me?: Saju; weekday: number; onSave: (s: Omit<Schedule, 'id' | 'createdAt'>) => Schedule; onExport: (s: Schedule) => void }) {
   const [kind, setKind] = useState<Kind>('이사');
   const [range, setRange] = useState<Range>('이번 달');
   const [weekendOnly, setWeekendOnly] = useState(false);
@@ -48,9 +49,11 @@ export function Finder({ today, me, weekday, onSave, onExport }: { today: YMD; m
   const avg = days.length ? Math.round(days.reduce((a, d) => a + fieldScore(d, fields), 0) / days.length) : 0;
   const reason = (d: DayResult, sign: 1 | -1) => leadRule(d.sources.flatMap((s) => s.rules).filter((r) => fields.some((f) => sign * (r.signals[f] ?? 0) > 0)));
 
-  if (!shown) {
-    return (
-      <Sheet>
+  // 조건 · TOP 3 · 피할 날을 세 장으로 나눈다. 한 칸 화면에서는 조건 → 결과 순서로 한 장씩, 넓은 화면에서는 나란히 보인다
+  return (
+    <div className="columns cols-finder" hidden={hidden} data-shown={shown || undefined}>
+      <h1 className="sr-only">좋은 날 찾기</h1>
+      <Sheet className="p-cond">
         <h2 className="h-display">어떤 일이 있나요?</h2>
         <Segmented label="일 종류" options={KINDS} value={kind} onChange={setKind} />
         <p className="h-note">{kind === '기타' ? '고백·여행·시험 등은 종합 점수로 골라요' : `${kind.replace('/', '·')}${josa(kind, '은', '는')} ${fields.join('·')} 점수로 골라요`}</p>
@@ -77,65 +80,76 @@ export function Finder({ today, me, weekday, onSave, onExport }: { today: YMD; m
           좋은 날 찾기
         </button>
       </Sheet>
-    );
-  }
-
-  return (
-    <Sheet>
-      <h2 className="h-display">{kind === '기타' ? '좋은 날' : `${kind}하기 좋은 날`.replace('개업/투자하기', '개업·투자하기')}</h2>
-      <p className="h-note">
-        {today.month}월 {today.day}일 ~ {end.month}월 {end.day}일 · {fields.join('·')} 점수 기준{weekendOnly ? ' · 주말만' : ''}
-      </p>
-      {top.length === 0 && <p className="h-body">조건에 맞는 날이 없어요. 기한을 늘려 보세요.</p>}
-      {top.length > 0 && <p className="h-note">이 기간 평균 {avg}점</p>}
-      {top.map((d, i) => {
-        const lr = reason(d, 1);
-        const key = fmt(d.info.date);
-        const diff = fieldScore(d, fields) - avg;
-        return (
-          <div key={key}>
-            <button type="button" aria-pressed={pick === key} onClick={() => setPick(pick === key ? null : key)} style={{ display: 'block', width: '100%', border: 0, background: pick === key ? 'rgb(31 58 147 / 0.06)' : 'none', padding: 0, textAlign: 'left' }}>
-              <ScoreLine average grade="좋음" label={`${i + 1}. ${label(d)} ${lr ? shortName(lr.name) : ''}`} value={fieldScore(d, fields)} />
-              <span className="h-note">
-                {i === 0 ? '이 기간 최고 · ' : ''}
-                {diff > 0 ? `평균보다 +${diff}점` : '평균 수준'}
-              </span>
-            </button>
-            {pick === key && (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!title.trim()) return;
-                  setSaved(onSave({ title: title.trim(), date: key, kind }));
-                  setPick(null);
-                  setTitle('');
-                }}
-              >
-                <div className="group">
-                  <label className="row">
-                    <span className="grow">{key.slice(5).replace('-', '/')} 일정 이름</span>
-                    <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: 새집 이사" style={{ font: 'inherit', border: 0, textAlign: 'right', minWidth: 0 }} />
-                  </label>
-                </div>
-                <button className="btn primary" type="submit" disabled={!title.trim()}>
-                  일정으로 저장
-                </button>
-              </form>
-            )}
+      <Sheet className="p-top">
+        {!shown && (
+          <div className="empty-note">
+            <PixelIcon name="star" size={4} />
+            <p className="h-body">일 종류와 기한을 고르고 '좋은 날 찾기'를 누르면 여기에 TOP 3가 나와요</p>
           </div>
-        );
-      })}
-      {top.length > 0 && !pick && !saved && <p className="h-note">TOP 3 중 하나를 누르면 일정으로 저장할 수 있어요</p>}
-      <SavedNote saved={saved} onExport={onExport} />
-      <p className="h-body title-ink">피할 날{avoidUnique.length === 0 && <span className="h-note"> · 이 기간에는 특별히 피할 날이 없어요</span>}</p>
-      {avoidUnique.map((d) => {
-        const lr = reason(d, -1);
-        return <ScoreLine key={fmt(d.info.date)} average grade="조심" label={`${label(d)} ${lr ? shortName(lr.name) : '점수가 낮은 날'}`} value={fieldScore(d, fields)} />;
-      })}
-      <button className="btn secondary" type="button" onClick={() => setShown(false)}>
-        조건 다시 고르기
-      </button>
-      <p className="ui-caption">운의 흐름이 좋은 날일 뿐, 결정은 직접 내려요.</p>
-    </Sheet>
+        )}
+        {shown && (
+          <>
+            <h2 className="h-display">{kind === '기타' ? '좋은 날' : `${kind}하기 좋은 날`.replace('개업/투자하기', '개업·투자하기')}</h2>
+            <p className="h-note">
+              {today.month}월 {today.day}일 ~ {end.month}월 {end.day}일 · {fields.join('·')} 점수 기준{weekendOnly ? ' · 주말만' : ''}
+            </p>
+            {top.length === 0 && <p className="h-body">조건에 맞는 날이 없어요. 기한을 늘려 보세요.</p>}
+            {top.length > 0 && <p className="h-note">이 기간 평균 {avg}점</p>}
+            {top.map((d, i) => {
+              const lr = reason(d, 1);
+              const key = fmt(d.info.date);
+              const diff = fieldScore(d, fields) - avg;
+              return (
+                <div key={key}>
+                  <button type="button" className="pick-row" aria-expanded={pick === key} onClick={() => setPick(pick === key ? null : key)}>
+                    <ScoreLine average grade="좋음" label={`${i + 1}. ${label(d)} ${lr ? shortName(lr.name) : ''}`} value={fieldScore(d, fields)} />
+                    <span className="h-note">
+                      {i === 0 ? '이 기간 최고 · ' : ''}
+                      {diff > 0 ? `평균보다 +${diff}점` : '평균 수준'}
+                    </span>
+                  </button>
+                  {pick === key && (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!title.trim()) return;
+                        setSaved(onSave({ title: title.trim(), date: key, kind }));
+                        setPick(null);
+                        setTitle('');
+                      }}
+                    >
+                      <div className="group">
+                        <label className="row">
+                          <span className="grow">{key.slice(5).replace('-', '/')} 일정 이름</span>
+                          <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: 새집 이사" style={{ font: 'inherit', border: 0, textAlign: 'right', minWidth: 0 }} />
+                        </label>
+                      </div>
+                      <button className="btn primary" type="submit" disabled={!title.trim()}>
+                        일정으로 저장
+                      </button>
+                    </form>
+                  )}
+                </div>
+              );
+            })}
+            {top.length > 0 && !pick && !saved && <p className="h-note">TOP 3 중 하나를 누르면 일정으로 저장할 수 있어요</p>}
+            <SavedNote saved={saved} onExport={onExport} />
+            <button className="btn secondary narrow-only" type="button" onClick={() => setShown(false)}>
+              조건 다시 고르기
+            </button>
+          </>
+        )}
+      </Sheet>
+      <Sheet className="p-avoid">
+        <h2 className="h-display">피할 날</h2>
+        {!shown && <p className="h-note">TOP 3를 찾으면 같은 기간에 피할 날도 함께 보여요</p>}
+        {shown && avoidUnique.length === 0 && <p className="h-note">이 기간에는 특별히 피할 날이 없어요</p>}
+        {shown && avoidUnique.map((d) => {
+          const lr = reason(d, -1);
+          return <ScoreLine key={fmt(d.info.date)} average grade="조심" label={`${label(d)} ${lr ? shortName(lr.name) : '점수가 낮은 날'}`} value={fieldScore(d, fields)} />;
+        })}
+        <p className="ui-caption">운의 흐름이 좋은 날일 뿐, 결정은 직접 내려요.</p>
+      </Sheet>
+    </div>
   );
 }

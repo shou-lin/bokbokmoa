@@ -1,5 +1,5 @@
 // 폴더폰 문자함 디자인의 픽셀 부품: 도트 아이콘, 위쪽 상태바, 문자 도착음
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
 // 글자 하나가 도트 하나. '.'은 비워 둔다
 const COLORS: Record<string, string> = { n: 'var(--px-navy, #1c2397)', w: '#fff', s: '#9fd8ff', b: '#3f63e0', r: '#e8455a', y: '#ffd84a', l: '#c7caf4', g: '#5fc46a' };
@@ -15,6 +15,7 @@ const ICONS = {
   th: ['nnnnnnnnnnn', 'nrrrrrrrrrn', 'nwwwwwwwwwn', 'nbbbbbbbbbn', 'nbbbbbbbbbn', 'nwwwwwwwwwn', 'nrrrrrrrrrn', 'nnnnnnnnnnn'],
   maya: ['.....n.....', '....nyn....', '...nnnnn...', '...nyyyn...', '..nnnnnnn..', '..nyyyyyn..', '.nnnnnnnnn.', 'nnnnnnnnnnn'],
   me: ['...nnn...', '..nwwwn..', '..nwwwn..', '...nnn...', '..nnnnn..', '.nwwwwwn.', 'nwwwwwwwn', 'nnnnnnnnn'],
+  warn: ['....n....', '...nyn...', '..nynyn..', '..nynyn..', '.nyynyyn.', '.nyyyyyn.', 'nyyynyyyn', 'nnnnnnnnn'],
   globe: ['....nnnn....', '..nnbbbbnn..', '.nbbggbbbbn.', '.nbgggbbbbn.', 'nbbgggbbgbbn', 'nbbbgbbgggbn', 'nbbbbbbgggbn', 'nbggbbbbgbbn', '.nbgggbbbbn.', '.nbbgbbbbbn.', '..nnbbbbnn..', '....nnnn....'],
 } as const;
 
@@ -61,6 +62,30 @@ export function StatusBar({ className = '' }: { className?: string }) {
           <i />
         </span>
       </span>
+    </div>
+  );
+}
+
+/** 폴더폰 한 대: 인트로와 온보딩이 같은 크기(아이폰 17 Pro 402×874)의 틀을 쓴다 */
+export function PhoneShell({ title, icon = 'envelope', right, sky, keys, label, onPointerDown, children }: { title: string; icon?: IconName; right?: ReactNode; sky?: ReactNode; keys?: ReactNode; label?: string; onPointerDown?: () => void; children: ReactNode }) {
+  return (
+    <div className="intro" onPointerDown={onPointerDown}>
+      <section className="intro-phone" aria-label={label ?? title}>
+        <StatusBar className="intro-status" />
+        {sky ?? (
+          <div className="intro-sky small" aria-hidden="true">
+            <PixelIcon name="globe" size={4} className="intro-globe" />
+            <PixelIcon name="envelope" size={5} className="intro-envelope-still" />
+          </div>
+        )}
+        <div className="intro-bar">
+          <PixelIcon name={icon} size={2} />
+          <span>{title}</span>
+          {right && <span className="intro-count">{right}</span>}
+        </div>
+        <div className="intro-body">{children}</div>
+        {keys && <div className="intro-keys">{keys}</div>}
+      </section>
     </div>
   );
 }

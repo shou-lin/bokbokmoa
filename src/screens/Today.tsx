@@ -46,7 +46,7 @@ export function Today({ today, me, schedules, onOpenSettings }: { today: YMD; me
       <SourceLines day={day} field="종합" />
       {day.alerts.map((a) => (
         <p key={a.name} className="caution-note">
-          ⚠️ {a.name} · {a.why.split(' · ').pop()}
+          <PixelIcon name="warn" size={2} className="warn-icon" /> {a.name} · {a.why.split(' · ').pop()}
         </p>
       ))}
       <p className="h-body">

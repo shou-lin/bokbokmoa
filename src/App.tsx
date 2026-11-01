@@ -11,7 +11,7 @@ import { Settings } from './screens/Settings';
 import { Today } from './screens/Today';
 import { type Kind, type Schedule, useOnboarded, useProfile, useSchedules } from './storage';
 import { fmt, parseYMD, todayKST, type YMD, WEEKDAYS, weekdayOf } from './fortune/date';
-import { type IconName, PixelIcon, StatusBar } from './pixel';
+import { type IconName, PhoneShell, PixelIcon, StatusBar } from './pixel';
 import { BottomSheet, Disclaimer, Sheet, shortName, signalText, sourceLabel, useMedia } from './ui';
 
 type Tab = 'home' | 'calendar' | 'finder' | 'settings';
@@ -45,7 +45,7 @@ export function App() {
   const [mode, setMode] = useState<Mode>('나');
   const [sheetOpen, setSheetOpen] = useState(false);
   // 아이패드 가로·컴퓨터에서는 날짜 상세를 옆 칸에, 그 밖에는 아래 시트로 연다
-  const sideDetail = useMedia('(min-width: 768px) and (orientation: landscape)');
+  const sideDetail = useMedia('(min-width: 768px) and (orientation: landscape), (min-width: 1400px)');
   const desktop = useMedia('(min-width: 1400px)');
 
   const me = useMemo(() => {
@@ -100,8 +100,9 @@ export function App() {
   }
 
   if (!onboarded || editing) {
+    // 온보딩도 인트로와 같은 폰 한 대 안에서, 받은 문자에 답장하듯 보여준다
     return (
-      <main className="app narrow">
+      <PhoneShell title={editing ? '내 정보 고치기' : '답장 · 생년월일'} icon="me">
         <Onboarding
           initial={editing ? profile : null}
           onDone={(p) => {
@@ -116,13 +117,15 @@ export function App() {
           }}
         />
         <Disclaimer />
-      </main>
+      </PhoneShell>
     );
   }
 
+  // 날짜 상세 칸이 화면에 있으면 거기에, 없으면 아래 시트로 연다
+  const detailShown = (tab === 'calendar' && sideDetail) || (tab === 'home' && desktop);
   const select = (d: YMD, open = true) => {
     setSelected(d);
-    if (open && !(sideDetail || (desktop && tab === 'home'))) setSheetOpen(true);
+    if (open && !detailShown) setSheetOpen(true);
   };
   const calendar = (
     <Calendar month={month} onMonth={setMonth} today={today} selected={selected} onSelect={select} field={field} onField={setField} mode={me ? mode : '일반'} onMode={setMode} me={me} schedules={schedules} />
@@ -145,29 +148,22 @@ export function App() {
       </nav>
       <main className="app">
         <StatusBar />
+        {/* 모든 탭이 같은 틀(칸 구성)을 쓴다. 칸 수는 화면 크기가 정한다: 1칸 · 2칸(아이패드 가로) · 3칸(컴퓨터) */}
         {tab === 'home' && (
-          <div className="columns home">
+          <div className="columns cols-home">
             <Today today={today} me={me} schedules={schedules} onOpenSettings={() => setEditing(true)} />
-            <div className="col-today-side">
-              <Sheet>{calendar}</Sheet>
-            </div>
-            <div className="col-detail">
-              <Sheet>{detail}</Sheet>
-            </div>
+            <Sheet className="wide-only">{calendar}</Sheet>
+            <Sheet className="desktop-only">{detail}</Sheet>
           </div>
         )}
         {tab === 'calendar' && (
-          <div className="columns calendar">
+          <div className="columns cols-calendar">
             <Sheet>{calendar}</Sheet>
-            <div className="col-detail">
-              <Sheet>{detail}</Sheet>
-            </div>
+            <Sheet className="wide-only">{detail}</Sheet>
           </div>
         )}
         {/* 다른 탭에 다녀와도 찾은 결과가 남도록 좋은 날 찾기는 숨기기만 한다 */}
-        <div hidden={tab !== 'finder'}>
-          <Finder today={today} me={me} weekday={weekdayOf(today)} onSave={addSchedule} onExport={exportSchedule} />
-        </div>
+        <Finder hidden={tab !== 'finder'} today={today} me={me} weekday={weekdayOf(today)} onSave={addSchedule} onExport={exportSchedule} />
         {tab === 'settings' && (
           <Settings
             profile={profile}
@@ -178,7 +174,12 @@ export function App() {
               setProfile(null);
               setMode('일반');
             }}
+            onRestoreProfile={(p) => {
+              setProfile(p);
+              setMode('나');
+            }}
             onDeleteSchedule={(id) => setSchedules((l) => l.filter((s) => s.id !== id))}
+            onRestoreSchedules={setSchedules}
             onExportSchedule={exportSchedule}
             onDeleteAll={() => setSchedules([])}
           />

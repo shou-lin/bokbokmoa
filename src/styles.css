@@ -39,6 +39,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 button { font: inherit; color: inherit; cursor: pointer; }
+[hidden] { display: none !important; }
 
 /* ---------- 손글씨 ---------- */
 .hand { font-family: var(--font-hand); color: var(--color-text-ink); }
@@ -111,6 +112,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .row { display: flex; align-items: center; gap: 8px; min-height: 56px; padding: 0 16px; font: 400 17px var(--font-ui); border: 0; background: none; width: 100%; text-align: left; }
 .row + .row { box-shadow: inset 16px 0.5px 0 var(--color-ios-surface), inset 0 0.5px 0 var(--color-ios-separator); }
 .row .grow { flex: 1; }
+.row .ellipsis { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row .value { color: #8a8a8e; }
 .row.danger { color: var(--color-ios-red); }
 .row input[type='date'], .row input[type='time'] { font: inherit; border: 0; background: var(--color-ios-fill); border-radius: 8px; padding: 6px 10px; color: inherit; }
@@ -155,8 +157,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .nav button[aria-current='page'] { color: var(--color-text-ink); }
 .nav button[aria-current='page']::after { background: var(--color-mark-good); }
 .nav { left: 0; right: 0; bottom: 0; justify-content: space-around; padding: 8px 16px calc(8px + var(--safe-bottom)); background: var(--color-bg-page); border-top: 1px solid var(--color-bg-sheet-edge); }
-.columns { display: block; }
-.col-detail, .col-today-side { display: none; }
+/* ---------- 공통 틀: 모든 탭이 같은 칸 구성을 쓴다 ----------
+   1칸(아이폰·아이패드 세로) → 2칸(아이패드 가로) → 3칸(컴퓨터). 칸 수는 화면 크기가 정하고, 탭은 칸을 채우기만 한다 */
+.columns { display: flex; flex-direction: column; }
+.wide-only, .desktop-only { display: none; }
+.cols-finder[data-shown] > .p-cond, .cols-finder:not([data-shown]) > :is(.p-top, .p-avoid) { display: none; }
 .disclaimer { margin: 16px 8px; }
 
 /* ---------- 아이패드 768~1399: 왼쪽 세로 탭 + 달력·상세 2단 (기준: 아이패드 Pro 11" 834×1210, 가로 1210×834) ---------- */
@@ -166,9 +171,21 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .nav .logo { display: block; font: 700 30px/56px var(--font-hand); color: var(--color-text-ink); }
   .cal-cell .s { display: block; font-size: 18px; line-height: var(--line); }
 }
-@media (min-width: 768px) and (orientation: landscape) {
-  .columns.calendar { display: grid; grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr); gap: 20px; align-items: start; }
-  .columns.calendar .col-detail { display: block; }
+@media (min-width: 768px) and (orientation: landscape), (min-width: 1400px) {
+  /* 2칸: 왼쪽 3 : 오른쪽 2 */
+  .columns { display: grid; grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr); grid-template-rows: minmax(0, 1fr); gap: 20px; }
+  .columns > * { grid-row: 1; }
+  .wide-only { display: block; }
+  .narrow-only { display: none !important; }
+  .cols-finder[data-shown] > .p-cond, .cols-finder:not([data-shown]) > :is(.p-top, .p-avoid) { display: block; }
+  /* 세 장짜리 탭(좋은 날·설정)은 오른쪽 칸을 위아래로 나눈다 */
+  .cols-finder, .cols-settings { grid-template-rows: minmax(0, 3fr) minmax(0, 2fr); }
+  .cols-finder > .p-cond { grid-column: 1; grid-row: 1 / 3; }
+  .cols-finder > .p-top { grid-column: 2; grid-row: 1; }
+  .cols-finder > .p-avoid { grid-column: 2; grid-row: 2; }
+  .cols-settings > .p-profile { grid-column: 1; grid-row: 1; }
+  .cols-settings > .p-about { grid-column: 1; grid-row: 2; }
+  .cols-settings > .p-schedules { grid-column: 2; grid-row: 1 / 3; }
 }
 
 /* ---------- 컴퓨터 1400 이상: 위쪽 메뉴 바 + 3단 (기준: MacBook Pro 14" 1512×982) ---------- */
@@ -177,8 +194,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .nav { top: 0; left: 0; right: 0; bottom: auto; width: auto; height: 64px; flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 0 32px; border-right: 0; border-bottom: 1px solid var(--color-bg-sheet-edge); }
   .nav .logo { position: absolute; left: 32px; }
   .nav .today-label { position: absolute; right: 32px; font: 400 18px var(--font-hand); color: var(--color-text-muted); }
-  .columns.home { display: grid; grid-template-columns: minmax(340px, 1fr) minmax(540px, 1.5fr) minmax(340px, 1fr); gap: 16px; align-items: start; }
-  .columns.home .col-today-side, .columns.home .col-detail { display: block; }
+  /* 3칸: 1 : 1.5 : 1 (MacBook Pro 14"에서 405 | 607 | 405). 모든 탭이 같은 세 칸 선을 쓴다 */
+  .columns, .cols-finder, .cols-settings { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 16px; }
+  .columns > *, .cols-finder > *, .cols-settings > * { grid-row: 1 !important; }
+  .desktop-only { display: block; }
+  .cols-calendar > :first-child { grid-column: 1 / 3; }
+  .cols-finder > .p-cond, .cols-settings > .p-profile { grid-column: 1; }
+  .cols-finder > .p-top, .cols-settings > .p-schedules { grid-column: 2; }
+  .cols-finder > .p-avoid, .cols-settings > .p-about { grid-column: 3; }
   .cal-cell { height: 84px; }
   .cal-cell .r { display: block; font: 500 11px/var(--line) var(--font-ui); color: var(--color-text-muted); white-space: nowrap; }
 }
@@ -215,4 +238,4 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* 폴더폰 디자인 전용 부품은 다른 디자인에서 숨긴다 (phone.css에서 보이게 한다) */
 .statusbar, .nav-icon, .row-icon, .phone-banner { display: none; }
 /* 온보딩처럼 메뉴 없는 한 장짜리 화면은 넓은 화면에서도 폭을 좁게 둔다 */
-.app.narrow { max-width: 520px; padding-left: 12px; padding-right: 12px; padding-top: calc(var(--safe-top) + 24px); }
+

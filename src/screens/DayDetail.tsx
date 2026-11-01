@@ -3,6 +3,7 @@ import { fmt, type YMD, WEEKDAYS } from '../fortune/date';
 import type { Saju } from '../fortune/personal';
 import { type Field, scoreDay } from '../fortune/score';
 import type { Kind, Schedule } from '../storage';
+import { PixelIcon } from '../pixel';
 import { josa, SavedNote, SourceLines, Sticky, signalText, shortName, sourceLabel } from '../ui';
 
 const fieldKind: Record<Field, Kind> = { 종합: '기타', 이동: '이사', 계약: '계약', 재물: '개업/투자' };
@@ -28,7 +29,7 @@ export function DayDetail({ date, me, field, schedules, onAdd, onExport }: { dat
       <SourceLines day={day} field={field} />
       {day.alerts.map((a) => (
         <p key={a.name} className="caution-note">
-          ⚠️ {a.name} · {a.why.split(' · ').pop()}
+          <PixelIcon name="warn" size={2} className="warn-icon" /> {a.name} · {a.why.split(' · ').pop()}
         </p>
       ))}
       {day.conflicts.length > 0 && (
