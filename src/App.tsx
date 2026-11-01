@@ -5,16 +5,28 @@ import { buildIcs, openIcs } from './ics';
 import { Calendar, type Mode } from './screens/Calendar';
 import { DayDetail } from './screens/DayDetail';
 import { Finder } from './screens/Finder';
+import { Intro } from './screens/Intro';
 import { Onboarding } from './screens/Onboarding';
 import { Settings } from './screens/Settings';
 import { Today } from './screens/Today';
 import { type Kind, type Schedule, useOnboarded, useProfile, useSchedules } from './storage';
 import { fmt, parseYMD, todayKST, type YMD, WEEKDAYS, weekdayOf } from './fortune/date';
+import { type IconName, PixelIcon, StatusBar } from './pixel';
 import { BottomSheet, Disclaimer, Sheet, shortName, signalText, sourceLabel, useMedia } from './ui';
 
 type Tab = 'home' | 'calendar' | 'finder' | 'settings';
 const KIND_FIELD: Record<Kind, Field> = { 이사: '이동', 계약: '계약', '개업/투자': '재물', 기타: '종합' };
-const TABS: [Tab, string][] = [['home', '홈'], ['calendar', '달력'], ['finder', '좋은 날'], ['settings', '설정']];
+const TABS: [Tab, string, IconName][] = [['home', '홈', 'house'], ['calendar', '달력', 'calendar'], ['finder', '좋은 날', 'star'], ['settings', '설정', 'gear']];
+
+// 문자 인트로는 탭(창)을 새로 열 때마다 한 번. ?tab= 으로 바로 들어오면(비교 페이지 등) 건너뛴다
+const INTRO_KEY = 'bokbokmoa.intro';
+function introSeen() {
+  try {
+    return sessionStorage.getItem(INTRO_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
 
 export function App() {
   const today = useMemo(todayKST, []);
@@ -26,6 +38,7 @@ export function App() {
     return TABS.some(([id]) => id === t) ? (t as Tab) : 'home';
   });
   const [editing, setEditing] = useState(false);
+  const [intro, setIntro] = useState(() => !new URLSearchParams(location.search).has('tab') && !introSeen());
   const [selected, setSelected] = useState<YMD>(today);
   const [month, setMonth] = useState({ year: today.year, month: today.month });
   const [field, setField] = useState<Field>('종합');
@@ -63,9 +76,32 @@ export function App() {
     return created;
   };
 
+  const closeIntro = () => {
+    try {
+      sessionStorage.setItem(INTRO_KEY, '1');
+    } catch {}
+    setIntro(false);
+  };
+  if (intro) {
+    return (
+      <Intro
+        today={today}
+        me={me}
+        onDetail={() => {
+          closeIntro();
+          if (onboarded) setEditing(true);
+        }}
+        onSkip={() => {
+          closeIntro();
+          setOnboarded(true);
+        }}
+      />
+    );
+  }
+
   if (!onboarded || editing) {
     return (
-      <main className="app">
+      <main className="app narrow">
         <Onboarding
           initial={editing ? profile : null}
           onDone={(p) => {
@@ -97,8 +133,9 @@ export function App() {
     <>
       <nav className="nav" aria-label="메뉴">
         <span className="logo">{desktop ? '복복모아' : '복복'}</span>
-        {TABS.map(([id, label]) => (
+        {TABS.map(([id, label, icon]) => (
           <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} onClick={() => setTab(id)}>
+            <PixelIcon name={icon} size={2} className="nav-icon" />
             {label}
           </button>
         ))}
@@ -107,6 +144,7 @@ export function App() {
         </span>
       </nav>
       <main className="app">
+        <StatusBar />
         {tab === 'home' && (
           <div className="columns home">
             <Today today={today} me={me} schedules={schedules} onOpenSettings={() => setEditing(true)} />

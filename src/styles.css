@@ -211,3 +211,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .bottom-sheet:focus { outline: none; }
 .sheet-close { position: absolute; top: 8px; right: 16px; min-width: 44px; min-height: 44px; border: 0; background: none; font: 500 15px var(--font-ui); color: var(--color-text-ink); }
+
+/* 폴더폰 디자인 전용 부품은 다른 디자인에서 숨긴다 (phone.css에서 보이게 한다) */
+.statusbar, .nav-icon, .row-icon, .phone-banner { display: none; }
+/* 온보딩처럼 메뉴 없는 한 장짜리 화면은 넓은 화면에서도 폭을 좁게 둔다 */
+.app.narrow { max-width: 520px; padding-left: 12px; padding-right: 12px; padding-top: calc(var(--safe-top) + 24px); }

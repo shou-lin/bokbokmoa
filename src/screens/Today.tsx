@@ -2,6 +2,7 @@ import { addDays, fmt, type YMD, WEEKDAYS } from '../fortune/date';
 import type { Saju } from '../fortune/personal';
 import { average, gradeOfAverage, scoreDay, scoreRange } from '../fortune/score';
 import type { Schedule } from '../storage';
+import { PixelIcon } from '../pixel';
 import { Sheet, SourceLines, Sticky, signalText, shortName, sourceLabel, summaryOf } from '../ui';
 
 const kindField = { 이사: '이동', 계약: '계약', '개업/투자': '재물', 기타: '종합' } as const;
@@ -21,6 +22,11 @@ export function Today({ today, me, schedules, onOpenSettings }: { today: YMD; me
 
   return (
     <Sheet>
+      {/* 폴더폰 디자인에서만 보이는 하늘 배너 */}
+      <div className="phone-banner" aria-hidden="true">
+        <PixelIcon name="globe" size={4} className="pb-globe" />
+        <PixelIcon name="envelope" size={5} className="pb-envelope" />
+      </div>
       <p className="h-note">
         {today.month}월 {today.day}일 {WEEKDAYS[day.info.weekday]}요일 · 음력 {day.info.lunar.isLeapMonth ? '윤' : ''}
         {day.info.lunar.month}월 {day.info.lunar.day}일

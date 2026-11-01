@@ -25,7 +25,7 @@ export function Onboarding({ initial, onDone, onSkip }: { initial: Profile | nul
 
   return (
     <Sheet>
-      <h1 className="h-display">{initial ? '내 정보 고치기' : '처음 오셨네요!'}</h1>
+      <h1 className="h-display">{initial ? '내 정보 고치기' : '생년월일을 알려 주세요'}</h1>
       <p className="h-body">생년월일시를 알려주면 나에게 맞춘 운세 달력을 만들어 드려요</p>
       <Segmented label="날짜 기준" options={['양력', '음력'] as const} value={calendar} onChange={setCalendar} />
       <div className="group">

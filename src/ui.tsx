@@ -2,6 +2,7 @@
 import type React from 'react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { type DayResult, type Field, type Grade, gradeOf, gradeOfAverage, type Rule, SOURCES } from './fortune/score';
+import { type IconName, PixelIcon } from './pixel';
 import type { Schedule } from './storage';
 
 export function Sheet({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -11,11 +12,14 @@ export function Sheet({ children, className = '' }: { children: ReactNode; class
 const markClass = { 좋음: 'mark-good', 보통: '', 조심: 'mark-careful' } as const;
 
 /** grade를 주면 점수 대신 그 등급으로 표시한다 (좋은 날 찾기의 기간 내 순위처럼) */
-export function ScoreLine({ label, value, average = false, grade: forced }: { label: string; value: number; average?: boolean; grade?: Grade }) {
+export function ScoreLine({ label, value, average = false, grade: forced, icon }: { label: string; value: number; average?: boolean; grade?: Grade; icon?: IconName }) {
   const grade = forced ?? (average ? gradeOfAverage(value) : gradeOf(value));
   return (
     <div className="score-line" data-grade={grade}>
-      <span className="label">{label}</span>
+      <span className="label">
+        {icon && <PixelIcon name={icon} size={2} className="row-icon" />}
+        {label}
+      </span>
       {/* 미니멀·픽셀 디자인에서만 보이는 점수 막대 */}
       <span className="meter" aria-hidden="true" style={{ '--v': `${value}%` } as React.CSSProperties} />
       <span className={`value ${markClass[grade]}`}>
@@ -128,7 +132,7 @@ export function SourceLines({ day, field }: { day: DayResult; field: Field }) {
       {day.sources.map((s) => {
         const lead = leadRule(s.rules);
         const label = s.id === 'me' ? '나 (사주·수비학)' : `${SOURCES[s.id].label}${lead ? ` · ${shortName(lead.name)}` : ''}`;
-        return <ScoreLine key={s.id} label={label} value={s.scores[field]} />;
+        return <ScoreLine key={s.id} icon={s.id} label={label} value={s.scores[field]} />;
       })}
     </div>
   );
