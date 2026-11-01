@@ -213,5 +213,5 @@
 [data-design='pixel'] .nav .logo { font: 700 18px var(--font-ui); }
 [data-design='pixel'] .bottom-sheet { border-radius: 0; border-top: 4px solid #000; }
 @media (max-width: 767px) { [data-design='pixel'] .nav { border-top-width: 4px; } }
-@media (min-width: 768px) and (max-width: 1199px) { [data-design='pixel'] .nav { border-right-width: 4px; } }
-@media (min-width: 1200px) { [data-design='pixel'] .nav { border-bottom-width: 4px; } }
+@media (min-width: 768px) and (max-width: 1399px) { [data-design='pixel'] .nav { border-right-width: 4px; } }
+@media (min-width: 1400px) { [data-design='pixel'] .nav { border-bottom-width: 4px; } }

@@ -46,7 +46,7 @@ export function App() {
   const [sheetOpen, setSheetOpen] = useState(false);
   // 아이패드 가로·컴퓨터에서는 날짜 상세를 옆 칸에, 그 밖에는 아래 시트로 연다
   const sideDetail = useMedia('(min-width: 768px) and (orientation: landscape)');
-  const desktop = useMedia('(min-width: 1200px)');
+  const desktop = useMedia('(min-width: 1400px)');
 
   const me = useMemo(() => {
     try {

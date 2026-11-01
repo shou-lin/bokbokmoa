@@ -72,7 +72,7 @@
 .statusbar .sb-battery { position: relative; display: flex; gap: 2px; padding: 2px; border: 2px solid var(--px-navy); }
 .statusbar .sb-battery::after { content: ''; position: absolute; right: -5px; top: 3px; width: 3px; height: 6px; background: var(--px-navy); }
 .statusbar .sb-battery i { width: 4px; height: 8px; background: #5fc46a; }
-@media (min-width: 1200px) { [data-design='phone'] .statusbar { display: none; } }
+@media (min-width: 1400px) { [data-design='phone'] .statusbar { display: none; } }
 
 /* 홈 위쪽 하늘 배너: 지구와 편지 */
 [data-design='phone'] .phone-banner {
@@ -168,11 +168,11 @@
 [data-design='phone'] .nav .logo { font: 700 18px var(--font-ui); color: var(--px-navy); }
 [data-design='phone'] .nav .today-label { font: 400 13px var(--font-ui); color: var(--px-navy); }
 @media (max-width: 767px) { [data-design='phone'] .nav { border-top-width: 3px; padding-left: 8px; padding-right: 8px; } }
-@media (min-width: 768px) and (max-width: 1199px) {
+@media (min-width: 768px) and (max-width: 1399px) {
   [data-design='phone'] .nav { border-right-width: 3px; }
   [data-design='phone'] .nav button { flex: none; width: 76px; }
 }
-@media (min-width: 1200px) {
+@media (min-width: 1400px) {
   [data-design='phone'] .nav { border-bottom-width: 3px; }
   [data-design='phone'] .nav button { flex: none; flex-direction: row; min-height: 44px; padding: 0 18px; border-radius: 8px; }
 }
@@ -192,8 +192,9 @@
   font-family: 'Galmuri11', 'Noto Sans KR', monospace; color: var(--px-navy); -webkit-font-smoothing: none;
 }
 .intro button { font-family: inherit; }
+/* 넓은 화면에서는 아이폰 17 Pro 크기(402×874)의 폰 한 대로 보여준다 */
 .intro-phone {
-  display: flex; flex-direction: column; width: min(420px, 100%); height: min(820px, calc(100dvh - 32px));
+  display: flex; flex-direction: column; width: min(402px, 100%); height: min(874px, calc(100dvh - 32px));
   background: var(--px-lav); border: 3px solid var(--px-navy); box-shadow: inset 0 0 0 2px #fff, 6px 6px 0 var(--px-navy); overflow: hidden;
 }
 @media (max-width: 480px) {
