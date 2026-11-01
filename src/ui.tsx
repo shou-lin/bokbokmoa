@@ -1,7 +1,8 @@
 // Figma 복복모아 컴포넌트와 같은 이름의 화면 부품
 import type React from 'react';
-import { useEffect, useState, type ReactNode } from 'react';
-import { type DayResult, type Field, gradeOf, gradeOfAverage, type Rule, SOURCES } from './fortune/score';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { type DayResult, type Field, type Grade, gradeOf, gradeOfAverage, type Rule, SOURCES } from './fortune/score';
+import type { Schedule } from './storage';
 
 export function Sheet({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <section className={`sheet ${className}`}>{children}</section>;
@@ -9,16 +10,77 @@ export function Sheet({ children, className = '' }: { children: ReactNode; class
 
 const markClass = { 좋음: 'mark-good', 보통: '', 조심: 'mark-careful' } as const;
 
-export function ScoreLine({ label, value, average = false }: { label: string; value: number; average?: boolean }) {
-  const grade = average ? gradeOfAverage(value) : gradeOf(value);
+/** grade를 주면 점수 대신 그 등급으로 표시한다 (좋은 날 찾기의 기간 내 순위처럼) */
+export function ScoreLine({ label, value, average = false, grade: forced }: { label: string; value: number; average?: boolean; grade?: Grade }) {
+  const grade = forced ?? (average ? gradeOfAverage(value) : gradeOf(value));
   return (
     <div className="score-line" data-grade={grade}>
       <span className="label">{label}</span>
       {/* 미니멀·픽셀 디자인에서만 보이는 점수 막대 */}
       <span className="meter" aria-hidden="true" style={{ '--v': `${value}%` } as React.CSSProperties} />
-      <span className={`value ${markClass[grade]}`} aria-label={`${value}점 ${grade}`}>
-        {value}점
+      <span className={`value ${markClass[grade]}`}>
+        {value}점<span className="sr-only"> {grade}</span>
       </span>
+    </div>
+  );
+}
+
+/** 아이폰·아이패드 세로의 아래 시트: 열리면 초점을 옮기고, Esc·닫기로 닫고, 닫으면 초점을 돌려준다 */
+export function BottomSheet({ label, onClose, children }: { label: string; onClose: () => void; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    ref.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return close.current();
+      if (e.key !== 'Tab' || !ref.current) return;
+      const items = [...ref.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), [tabindex="0"]')];
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first) return;
+      if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      prev?.focus();
+    };
+  }, []);
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div ref={ref} className="bottom-sheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
+        <div className="grabber" aria-hidden="true" />
+        <button type="button" className="sheet-close" onClick={onClose}>
+          닫기
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** 일정을 저장한 뒤 보여주는 확인. 캘린더 파일은 버튼을 눌렀을 때만 받는다 */
+export function SavedNote({ saved, onExport }: { saved: Schedule | null; onExport: (s: Schedule) => void }) {
+  return (
+    <div role="status">
+      {saved && (
+        <>
+          <p className="h-body title-ink">
+            ★ {saved.date.slice(5).replace('-', '/')} {saved.title} 적었어요
+          </p>
+          <button className="btn secondary" type="button" onClick={() => onExport(saved)}>
+            캘린더에 넣기
+          </button>
+        </>
+      )}
     </div>
   );
 }

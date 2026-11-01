@@ -3,7 +3,7 @@ import { addDays, fmt, type YMD, WEEKDAYS } from '../fortune/date';
 import type { Saju } from '../fortune/personal';
 import { type DayResult, type Field, gradeOfAverage, scoreRange } from '../fortune/score';
 import type { Kind, Schedule } from '../storage';
-import { josa, leadRule, ScoreLine, Segmented, Sheet, shortName } from '../ui';
+import { josa, leadRule, SavedNote, ScoreLine, Segmented, Sheet, shortName } from '../ui';
 
 const KINDS = ['이사', '계약', '개업/투자', '기타'] as const;
 const KIND_FIELDS: Record<Kind, Field[]> = { 이사: ['이동'], 계약: ['계약'], '개업/투자': ['재물', '계약'], 기타: ['종합'] };
@@ -21,13 +21,14 @@ function rangeDays(today: YMD, range: Range, weekday: number) {
 const fieldScore = (d: DayResult, fields: Field[]) => Math.round(fields.reduce((a, f) => a + d.average[f], 0) / fields.length);
 const label = (d: DayResult) => `${d.info.date.month}/${d.info.date.day} ${WEEKDAYS[d.info.weekday]}`;
 
-export function Finder({ today, me, weekday, onSave }: { today: YMD; me?: Saju; weekday: number; onSave: (s: Omit<Schedule, 'id' | 'createdAt'>) => void }) {
+export function Finder({ today, me, weekday, onSave, onExport }: { today: YMD; me?: Saju; weekday: number; onSave: (s: Omit<Schedule, 'id' | 'createdAt'>) => Schedule; onExport: (s: Schedule) => void }) {
   const [kind, setKind] = useState<Kind>('이사');
   const [range, setRange] = useState<Range>('이번 달');
   const [weekendOnly, setWeekendOnly] = useState(false);
   const [shown, setShown] = useState(false);
   const [pick, setPick] = useState<string | null>(null);
   const [title, setTitle] = useState('');
+  const [saved, setSaved] = useState<Schedule | null>(null);
 
   const fields = KIND_FIELDS[kind];
   const n = rangeDays(today, range, weekday);
@@ -43,6 +44,8 @@ export function Finder({ today, me, weekday, onSave }: { today: YMD; me?: Saju; 
     .filter((d) => !top.includes(d) && (hasMinus2(d) || clash(d) || gradeOfAverage(fieldScore(d, fields)) === '조심'))
     .sort((a, b) => fieldScore(a, fields) - fieldScore(b, fields))
     .slice(0, 3);
+  // 등급은 74점부터 좋음이라 TOP 3도 보통으로 보일 수 있다. 그래서 이 기간 평균과 비교해 보여준다
+  const avg = days.length ? Math.round(days.reduce((a, d) => a + fieldScore(d, fields), 0) / days.length) : 0;
   const reason = (d: DayResult, sign: 1 | -1) => leadRule(d.sources.flatMap((s) => s.rules).filter((r) => fields.some((f) => sign * (r.signals[f] ?? 0) > 0)));
 
   if (!shown) {
@@ -62,7 +65,15 @@ export function Finder({ today, me, weekday, onSave }: { today: YMD; me?: Saju; 
             <input className="toggle" type="checkbox" checked={weekendOnly} onChange={(e) => setWeekendOnly(e.target.checked)} />
           </label>
         </div>
-        <button className="btn primary" type="button" onClick={() => setShown(true)}>
+        <button
+          className="btn primary"
+          type="button"
+          onClick={() => {
+            setShown(true);
+            setPick(null);
+            setSaved(null);
+          }}
+        >
           좋은 날 찾기
         </button>
       </Sheet>
@@ -76,43 +87,51 @@ export function Finder({ today, me, weekday, onSave }: { today: YMD; me?: Saju; 
         {today.month}월 {today.day}일 ~ {end.month}월 {end.day}일 · {fields.join('·')} 점수 기준{weekendOnly ? ' · 주말만' : ''}
       </p>
       {top.length === 0 && <p className="h-body">조건에 맞는 날이 없어요. 기한을 늘려 보세요.</p>}
+      {top.length > 0 && <p className="h-note">이 기간 평균 {avg}점</p>}
       {top.map((d, i) => {
         const lr = reason(d, 1);
         const key = fmt(d.info.date);
+        const diff = fieldScore(d, fields) - avg;
         return (
-          <button key={key} type="button" onClick={() => setPick(key)} style={{ display: 'block', width: '100%', border: 0, background: pick === key ? 'rgb(31 58 147 / 0.06)' : 'none', padding: 0, textAlign: 'left' }}>
-            <ScoreLine average label={`${i + 1}. ${label(d)} ${lr ? shortName(lr.name) : ''}`} value={fieldScore(d, fields)} />
-          </button>
+          <div key={key}>
+            <button type="button" aria-pressed={pick === key} onClick={() => setPick(pick === key ? null : key)} style={{ display: 'block', width: '100%', border: 0, background: pick === key ? 'rgb(31 58 147 / 0.06)' : 'none', padding: 0, textAlign: 'left' }}>
+              <ScoreLine average grade="좋음" label={`${i + 1}. ${label(d)} ${lr ? shortName(lr.name) : ''}`} value={fieldScore(d, fields)} />
+              <span className="h-note">
+                {i === 0 ? '이 기간 최고 · ' : ''}
+                {diff > 0 ? `평균보다 +${diff}점` : '평균 수준'}
+              </span>
+            </button>
+            {pick === key && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!title.trim()) return;
+                  setSaved(onSave({ title: title.trim(), date: key, kind }));
+                  setPick(null);
+                  setTitle('');
+                }}
+              >
+                <div className="group">
+                  <label className="row">
+                    <span className="grow">{key.slice(5).replace('-', '/')} 일정 이름</span>
+                    <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: 새집 이사" style={{ font: 'inherit', border: 0, textAlign: 'right', minWidth: 0 }} />
+                  </label>
+                </div>
+                <button className="btn primary" type="submit" disabled={!title.trim()}>
+                  일정으로 저장
+                </button>
+              </form>
+            )}
+          </div>
         );
       })}
+      {top.length > 0 && !pick && !saved && <p className="h-note">TOP 3 중 하나를 누르면 일정으로 저장할 수 있어요</p>}
+      <SavedNote saved={saved} onExport={onExport} />
       <p className="h-body title-ink">피할 날{avoidUnique.length === 0 && <span className="h-note"> · 이 기간에는 특별히 피할 날이 없어요</span>}</p>
       {avoidUnique.map((d) => {
         const lr = reason(d, -1);
-        return <ScoreLine key={fmt(d.info.date)} average label={`${label(d)} ${lr ? shortName(lr.name) : '점수가 낮은 날'}`} value={fieldScore(d, fields)} />;
+        return <ScoreLine key={fmt(d.info.date)} average grade="조심" label={`${label(d)} ${lr ? shortName(lr.name) : '점수가 낮은 날'}`} value={fieldScore(d, fields)} />;
       })}
-      {pick ? (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!title.trim()) return;
-            onSave({ title: title.trim(), date: pick, kind });
-            setPick(null);
-            setTitle('');
-          }}
-        >
-          <div className="group">
-            <label className="row">
-              <span className="grow">{pick.slice(5).replace('-', '/')} 일정 이름</span>
-              <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: 새집 이사" style={{ font: 'inherit', border: 0, textAlign: 'right', minWidth: 0 }} />
-            </label>
-          </div>
-          <button className="btn primary" type="submit" disabled={!title.trim()}>
-            저장하고 캘린더에 넣기
-          </button>
-        </form>
-      ) : (
-        <p className="h-note">TOP 3 중 하나를 누르면 일정으로 저장할 수 있어요</p>
-      )}
       <button className="btn secondary" type="button" onClick={() => setShown(false)}>
         조건 다시 고르기
       </button>

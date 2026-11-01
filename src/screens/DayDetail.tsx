@@ -3,14 +3,15 @@ import { fmt, type YMD, WEEKDAYS } from '../fortune/date';
 import type { Saju } from '../fortune/personal';
 import { type Field, scoreDay } from '../fortune/score';
 import type { Kind, Schedule } from '../storage';
-import { josa, SourceLines, Sticky, signalText, shortName, sourceLabel } from '../ui';
+import { josa, SavedNote, SourceLines, Sticky, signalText, shortName, sourceLabel } from '../ui';
 
 const fieldKind: Record<Field, Kind> = { 종합: '기타', 이동: '이사', 계약: '계약', 재물: '개업/투자' };
 
-export function DayDetail({ date, me, field, schedules, onAdd }: { date: YMD; me?: Saju; field: Field; schedules: Schedule[]; onAdd: (s: Omit<Schedule, 'id' | 'createdAt'>) => void }) {
+export function DayDetail({ date, me, field, schedules, onAdd, onExport }: { date: YMD; me?: Saju; field: Field; schedules: Schedule[]; onAdd: (s: Omit<Schedule, 'id' | 'createdAt'>) => Schedule; onExport: (s: Schedule) => void }) {
   const day = scoreDay(date, me);
   const [title, setTitle] = useState('');
   const [adding, setAdding] = useState(false);
+  const [saved, setSaved] = useState<Schedule | null>(null);
   const rules = day.sources.flatMap((s) => s.rules).filter((r) => Object.keys(r.signals).length > 0);
   const onDay = schedules.filter((s) => s.date === fmt(date));
 
@@ -45,12 +46,13 @@ export function DayDetail({ date, me, field, schedules, onAdd }: { date: YMD; me
           ★ {s.title}
         </p>
       ))}
+      <SavedNote saved={saved} onExport={onExport} />
       {adding ? (
         <form
           onSubmit={(e) => {
             e.preventDefault();
             if (!title.trim()) return;
-            onAdd({ title: title.trim(), date: fmt(date), kind: fieldKind[field] });
+            setSaved(onAdd({ title: title.trim(), date: fmt(date), kind: fieldKind[field] }));
             setTitle('');
             setAdding(false);
           }}
@@ -62,11 +64,18 @@ export function DayDetail({ date, me, field, schedules, onAdd }: { date: YMD; me
             </label>
           </div>
           <button className="btn primary" type="submit" disabled={!title.trim()}>
-            저장하고 캘린더에 넣기
+            일정으로 저장
           </button>
         </form>
       ) : (
-        <button className="btn primary" type="button" onClick={() => setAdding(true)}>
+        <button
+          className="btn primary"
+          type="button"
+          onClick={() => {
+            setAdding(true);
+            setSaved(null);
+          }}
+        >
           이 날로 일정 추가
         </button>
       )}

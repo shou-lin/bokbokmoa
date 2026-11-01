@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { parseYMD, todayKST, type YMD, WEEKDAYS, weekdayOf } from './fortune/date';
 import { sajuOf } from './fortune/personal';
 import { type Field, gradeOfAverage, scoreDay } from './fortune/score';
 import { buildIcs, openIcs } from './ics';
@@ -10,7 +9,8 @@ import { Onboarding } from './screens/Onboarding';
 import { Settings } from './screens/Settings';
 import { Today } from './screens/Today';
 import { type Kind, type Schedule, useOnboarded, useProfile, useSchedules } from './storage';
-import { Disclaimer, Sheet, shortName, signalText, sourceLabel, useMedia } from './ui';
+import { fmt, parseYMD, todayKST, type YMD, WEEKDAYS, weekdayOf } from './fortune/date';
+import { BottomSheet, Disclaimer, Sheet, shortName, signalText, sourceLabel, useMedia } from './ui';
 
 type Tab = 'home' | 'calendar' | 'finder' | 'settings';
 const KIND_FIELD: Record<Kind, Field> = { 이사: '이동', 계약: '계약', '개업/투자': '재물', 기타: '종합' };
@@ -44,7 +44,7 @@ export function App() {
   }, [profile]);
   const calMe = mode === '나' ? me : undefined;
 
-  // 일정은 기기에 저장하고, 같은 내용을 .ics로 열어 iOS 캘린더에도 넣을 수 있게 한다
+  // 일정은 기기에 저장하고, 원하면 같은 내용을 .ics로 열어 iOS 캘린더에도 넣는다
   const exportSchedule = (s: Schedule) => {
     const field = KIND_FIELD[s.kind];
     const day = scoreDay(parseYMD(s.date), me);
@@ -60,7 +60,7 @@ export function App() {
   const addSchedule = (s: Omit<Schedule, 'id' | 'createdAt'>) => {
     const created: Schedule = { ...s, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
     setSchedules((list) => [...list, created].sort((a, b) => a.date.localeCompare(b.date)));
-    exportSchedule(created);
+    return created;
   };
 
   if (!onboarded || editing) {
@@ -84,14 +84,14 @@ export function App() {
     );
   }
 
-  const select = (d: YMD) => {
+  const select = (d: YMD, open = true) => {
     setSelected(d);
-    if (!(sideDetail || (desktop && tab === 'home'))) setSheetOpen(true);
+    if (open && !(sideDetail || (desktop && tab === 'home'))) setSheetOpen(true);
   };
   const calendar = (
     <Calendar month={month} onMonth={setMonth} today={today} selected={selected} onSelect={select} field={field} onField={setField} mode={me ? mode : '일반'} onMode={setMode} me={me} schedules={schedules} />
   );
-  const detail = <DayDetail date={selected} me={calMe} field={field} schedules={schedules} onAdd={addSchedule} />;
+  const detail = <DayDetail key={fmt(selected)} date={selected} me={calMe} field={field} schedules={schedules} onAdd={addSchedule} onExport={exportSchedule} />;
 
   return (
     <>
@@ -126,7 +126,10 @@ export function App() {
             </div>
           </div>
         )}
-        {tab === 'finder' && <Finder today={today} me={me} weekday={weekdayOf(today)} onSave={addSchedule} />}
+        {/* 다른 탭에 다녀와도 찾은 결과가 남도록 좋은 날 찾기는 숨기기만 한다 */}
+        <div hidden={tab !== 'finder'}>
+          <Finder today={today} me={me} weekday={weekdayOf(today)} onSave={addSchedule} onExport={exportSchedule} />
+        </div>
         {tab === 'settings' && (
           <Settings
             profile={profile}
@@ -145,12 +148,9 @@ export function App() {
         <Disclaimer />
       </main>
       {sheetOpen && (
-        <div className="overlay" onClick={() => setSheetOpen(false)}>
-          <div className="bottom-sheet" role="dialog" aria-modal="true" aria-label="날짜 상세" onClick={(e) => e.stopPropagation()}>
-            <div className="grabber" />
-            {detail}
-          </div>
-        </div>
+        <BottomSheet label={`${selected.month}월 ${selected.day}일 상세`} onClose={() => setSheetOpen(false)}>
+          {detail}
+        </BottomSheet>
       )}
     </>
   );
