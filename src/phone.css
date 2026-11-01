@@ -64,15 +64,25 @@
 
 /* ---------- 틀: 화면 높이에 고정, 넘치는 내용은 창 안에서 스크롤 ----------
    위 상태바 · 가운데 창 · 아래 안내 한 줄. 모든 탭의 창은 같은 위치에서 시작해 같은 위치에서 끝난다 */
-[data-design='phone'] .app { height: 100dvh; min-height: 0; display: flex; flex-direction: column; }
+[data-design='phone'] .app { height: var(--app-h, 100dvh); min-height: 0; display: flex; flex-direction: column; }
 [data-design='phone'] .app > .columns { flex: 1; min-height: 0; margin-top: 12px; }
-/* 1칸: 창 묶음 전체가 한 화면 안에서 스크롤하고, 내용이 짧아도 창이 아래 끝까지 찬다 */
-[data-design='phone'] .columns { overflow: auto; gap: 12px; padding: 0 4px 4px 0; }
-[data-design='phone'] .columns > .sheet { flex: 1 0 auto; }
+/* 1칸: 틀 자체가 창 하나다. 탭마다 창 크기가 똑같고, 내용만 창 안에서 스크롤한다.
+   한 탭에 여러 장(설정)이 있으면 창 안에서 구분선으로 나눈다 */
+[data-design='phone'] .columns {
+  overflow: auto; gap: 0; border-radius: 4px;
+  background: var(--px-lav); border: 3px solid var(--px-navy);
+  box-shadow: inset 0 0 0 2px #fff, 4px 4px 0 var(--px-navy);
+}
+[data-design='phone'] .columns > .sheet { flex: none; border: 0; border-radius: 0; background: none; box-shadow: none; }
+[data-design='phone'] .columns > .sheet ~ .sheet { box-shadow: inset 0 3px 0 var(--px-lav2); }
 @media (min-width: 768px) and (orientation: landscape), (min-width: 1400px) {
   /* 여러 칸: 칸마다 높이가 같은 창 하나, 창 안에서 스크롤 */
-  [data-design='phone'] .columns { overflow: visible; padding: 0; }
-  [data-design='phone'] .columns > .sheet { min-height: 0; overflow: auto; }
+  [data-design='phone'] .columns { overflow: visible; border: 0; border-radius: 0; background: none; box-shadow: none; }
+  [data-design='phone'] .columns > .sheet {
+    min-height: 0; overflow: auto; border-radius: 4px;
+    background: var(--px-lav); border: 3px solid var(--px-navy);
+    box-shadow: inset 0 0 0 2px #fff, 4px 4px 0 var(--px-navy);
+  }
 }
 @media (max-width: 767px) {
   /* 아이폰: 상태바는 화면 끝까지, 창은 12px 여백 안쪽 (인트로 폰과 같은 모양) */
@@ -213,10 +223,10 @@
 [data-design='phone'] .bottom-sheet { border-radius: 0; background: var(--px-lav); border-top: 3px solid var(--px-navy); padding-top: 52px; }
 [data-design='phone'] .bottom-sheet .grabber { border-radius: 0; background: var(--px-navy); top: 10px; }
 /* 아이폰은 상태바가 보이게 시트 높이를 줄이고, 아이패드 세로는 시트를 가운데 창과 같은 폭·위치에 둔다 */
-[data-design='phone'] .bottom-sheet { max-height: calc(100dvh - var(--safe-top) - 34px); }
+[data-design='phone'] .bottom-sheet { max-height: calc(var(--app-h, 100dvh) - var(--safe-top) - 34px); }
 @media (min-width: 768px) {
   [data-design='phone'] .overlay { padding: 0 24px 0 120px; }
-  [data-design='phone'] .bottom-sheet { max-width: none; max-height: calc(100dvh - 58px); }
+  [data-design='phone'] .bottom-sheet { max-width: none; max-height: calc(var(--app-h, 100dvh) - 58px); }
 }
 [data-design='phone'] .warn-icon { flex: none; }
 [data-design='phone'] .sheet-close { top: 8px; font: 700 12px var(--font-ui); background: #fff; border: 2px solid var(--px-navy); box-shadow: 2px 2px 0 var(--px-navy); }
@@ -233,12 +243,12 @@
 /* 넓은 화면에서는 아이폰 17 Pro 크기(402×874)의 폰 한 대로 보여준다 */
 .intro-phone {
   /* 화면이 낮으면 눌리지 않고 402:874 비율 그대로 작아진다 */
-  display: flex; flex-direction: column; height: min(874px, calc(100dvh - 32px)); aspect-ratio: 402 / 874; max-width: 100%;
+  display: flex; flex-direction: column; height: min(874px, calc(var(--app-h, 100dvh) - 32px)); aspect-ratio: 402 / 874; max-width: 100%;
   background: var(--px-lav); border: 3px solid var(--px-navy); box-shadow: inset 0 0 0 2px #fff, 6px 6px 0 var(--px-navy); overflow: hidden;
 }
 @media (max-width: 480px) {
   .intro { padding: 0; }
-  .intro-phone { width: 100%; height: 100dvh; aspect-ratio: auto; border: 0; box-shadow: none; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .intro-phone { width: 100%; height: var(--app-h, 100dvh); aspect-ratio: auto; border: 0; box-shadow: none; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
 .intro-status { border-width: 0 0 3px; }
 
@@ -300,3 +310,13 @@
 @media (prefers-reduced-motion: reduce) {
   .intro *, .intro *::before, .intro *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- 계정 · 피드백 ---------- */
+[data-design='phone'] .row input:is([type='email'], [type='password']) { flex: 1; min-width: 0; font: inherit; text-align: right; color: var(--px-navy); background: transparent; border: 0; }
+[data-design='phone'] .row input::placeholder, [data-design='phone'] .feedback-input::placeholder { color: var(--color-text-muted); }
+[data-design='phone'] .feedback-input { display: block; width: 100%; min-height: 132px; margin: 8px 0 0; padding: 10px 12px; resize: vertical; font: 400 15px/24px var(--font-body); color: var(--px-navy); background: #fff; border: 2px solid var(--px-navy); border-radius: 0; box-shadow: 3px 3px 0 var(--px-navy); }
+[data-design='phone'] .feedback-input:focus-visible { outline: 3px solid #3f63e0; outline-offset: 2px; }
+[data-design='phone'] .inbox-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+[data-design='phone'] .p-about .sticky { margin: 0 0 12px; }
+[data-design='phone'] .p-about .sticky .d { white-space: pre-wrap; }
+[data-design='phone'] .row input:focus-visible { outline: 3px solid #3f63e0; outline-offset: 2px; border-radius: 0; }

@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
-import { sajuOf } from './fortune/personal';
+import { useEffect, useMemo, useState } from 'react';
+import { CREATOR_EMAIL, loadProfile, saveProfile, useSession } from './account';
+import { type Profile, sajuOf } from './fortune/personal';
 import { type Field, gradeOfAverage, scoreDay } from './fortune/score';
 import { buildIcs, openIcs } from './ics';
 import { Calendar, type Mode } from './screens/Calendar';
@@ -39,6 +40,45 @@ export function App() {
   });
   const [editing, setEditing] = useState(false);
   const [intro, setIntro] = useState(() => !new URLSearchParams(location.search).has('tab') && !introSeen());
+  const session = useSession();
+  const userId = session?.user.id;
+  const email = session?.user.email;
+  const isCreator = email?.toLowerCase() === CREATOR_EMAIL;
+  // 제작자도 평소에는 일반 화면을 쓰고, 스위치를 켤 때만 받은 피드백을 본다
+  const [creatorOn, setCreatorOn] = useState(() => {
+    try {
+      return localStorage.getItem('bokbokmoa.creator') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const changeCreator = (on: boolean) => {
+    setCreatorOn(on);
+    try {
+      localStorage.setItem('bokbokmoa.creator', on ? '1' : '0');
+    } catch {}
+  };
+  // 로그인한 동안 내 정보를 바꾸면 계정에도 저장한다
+  const changeProfile = (p: Profile | null) => {
+    setProfile(p);
+    if (userId) saveProfile(userId, p);
+  };
+  // 로그인하면 계정의 내 정보를 불러오고, 계정에 없으면 이 기기의 정보를 올린다
+  useEffect(() => {
+    if (!userId) return;
+    let alive = true;
+    loadProfile().then((server) => {
+      if (!alive) return;
+      if (server) {
+        setProfile(server);
+        setMode('나');
+        setOnboarded(true);
+      } else if (profile) saveProfile(userId, profile);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
   const [selected, setSelected] = useState<YMD>(today);
   const [month, setMonth] = useState({ year: today.year, month: today.month });
   const [field, setField] = useState<Field>('종합');
@@ -106,7 +146,7 @@ export function App() {
         <Onboarding
           initial={editing ? profile : null}
           onDone={(p) => {
-            setProfile(p);
+            changeProfile(p);
             setMode('나');
             setOnboarded(true);
             setEditing(false);
@@ -136,6 +176,11 @@ export function App() {
     <>
       <nav className="nav" aria-label="메뉴">
         <span className="logo">{desktop ? '복복모아' : '복복'}</span>
+        {/* 오늘의 운세 문자를 다시 받아 보기 */}
+        <button type="button" onClick={() => setIntro(true)}>
+          <PixelIcon name="envelope" size={2} className="nav-icon" />
+          오늘
+        </button>
         {TABS.map(([id, label, icon]) => (
           <button key={id} type="button" aria-current={tab === id ? 'page' : undefined} onClick={() => setTab(id)}>
             <PixelIcon name={icon} size={2} className="nav-icon" />
@@ -171,17 +216,18 @@ export function App() {
             schedules={schedules}
             onEdit={() => setEditing(true)}
             onDeleteProfile={() => {
-              setProfile(null);
+              changeProfile(null);
               setMode('일반');
             }}
             onRestoreProfile={(p) => {
-              setProfile(p);
+              changeProfile(p);
               setMode('나');
             }}
             onDeleteSchedule={(id) => setSchedules((l) => l.filter((s) => s.id !== id))}
             onRestoreSchedules={setSchedules}
             onExportSchedule={exportSchedule}
             onDeleteAll={() => setSchedules([])}
+            account={{ email, isCreator, creatorOn, onCreator: changeCreator }}
           />
         )}
         <Disclaimer />

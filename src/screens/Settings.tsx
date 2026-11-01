@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { type Profile, type Saju, ZODIAC } from '../fortune/personal';
 import type { Schedule } from '../storage';
 import { josa, Sheet } from '../ui';
+import { AccountGroup, FeedbackPanel } from './Account';
 
 type Undo = { label: string; restore: () => void };
 
@@ -16,8 +17,9 @@ export function Settings(props: {
   onRestoreSchedules: (list: Schedule[]) => void;
   onExportSchedule: (s: Schedule) => void;
   onDeleteAll: () => void;
+  account: { email?: string; isCreator: boolean; creatorOn: boolean; onCreator: (on: boolean) => void };
 }) {
-  const { profile, me, schedules } = props;
+  const { profile, me, schedules, account } = props;
   // 지우면 바로 지우고, 몇 초 동안 "되돌리기"를 보여준다 (확인 창 대신)
   const [undo, setUndo] = useState<Undo | null>(null);
   useEffect(() => {
@@ -73,6 +75,7 @@ export function Settings(props: {
             </button>
           )}
         </div>
+        <AccountGroup {...account} />
       </Sheet>
       <Sheet className="p-schedules">
         <h2 className="h-display">일정 {schedules.length}개</h2>
@@ -100,8 +103,8 @@ export function Settings(props: {
         )}
       </Sheet>
       <Sheet className="p-about">
-        <h2 className="h-display">저장과 안내</h2>
-        <p className="ui-caption">로그인 없이 이 기기 브라우저에만 저장돼요. 브라우저 데이터를 지우면 일정과 내 정보도 함께 사라져요.</p>
+        <FeedbackPanel email={account.email} creatorOn={account.isCreator && account.creatorOn} />
+        <p className="ui-caption">일정은 이 기기 브라우저에만 저장돼요. 생년월일시는 로그인하면 계정에도 저장돼요.</p>
         <p className="h-note">점수는 운의 흐름을 재미로 보여줄 뿐, 어떤 결과도 보장하지 않아요.</p>
       </Sheet>
     </div>
