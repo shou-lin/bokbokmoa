@@ -27,6 +27,10 @@
 
 화면 크기별 스크린샷 전체는 [docs/screenshots/2026-10-24](docs/screenshots/2026-10-24)에 있습니다.
 
+## 배포
+
+**https://bokbokmoa.vercel.app** (Vercel, 정적 사이트). 디자인 비교: https://bokbokmoa.vercel.app/compare.html
+
 ## 실행 방법
 
 Node.js 20.19 이상(또는 22.12 이상)이 필요합니다.
@@ -53,6 +57,7 @@ npm run preview  # 빌드 결과 미리보기
 | 10/24 | Figma에 디자인 시스템(스프링 메모장 + 손글씨) 정리, 손글씨 글꼴을 개구로 결정 |
 | 10/24 | 시제품 계산을 `src/fortune`으로 옮기고, 스킬 결과와 같은 값이 나오는지 테스트로 고정. 화면 6개와 세 가지 레이아웃, 홈 화면에 추가(매니페스트·아이콘) 구현. 글자와 버튼은 메모장의 28px 줄에 맞춤 |
 | 10/24 | `.ics` 내보내기, 디자인 버전 비교 페이지, 기기 크기별 스크린샷 |
+| 11/1 | Vercel 프로덕션 배포 (https://bokbokmoa.vercel.app) |
 
 ## Claude Code 사용 증거와 검증 결과
 
